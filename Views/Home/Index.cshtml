@@ -1,0 +1,199 @@
+﻿@model DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-tachometer-alt me-3"></i>Dashboard</h1>
+            <p class="mb-0 opacity-75">Welcome back! Here's an overview of your PO Management System.</p>
+        </div>
+        <div class="text-end d-none d-md-block">
+            <small class="opacity-75">@DateTime.Now.ToString("dddd, MMMM d, yyyy")</small>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-4 mb-4">
+    <!-- Total POs -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="info-box bg-white">
+            <span class="info-box-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-muted">Total Purchase Orders</span>
+                <span class="info-box-number fs-3 fw-bold">@Model.TotalPOs</span>
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Completed POs -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="info-box bg-white">
+            <span class="info-box-icon" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white;">
+                <i class="fas fa-check-circle"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-muted">Completed POs</span>
+                <span class="info-box-number fs-3 fw-bold">@Model.CompletedPOs</span>
+                @{
+                    var completionRate = Model.TotalPOs > 0 ? (double)Model.CompletedPOs / Model.TotalPOs * 100 : 0;
+                }
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar bg-success" style="width: @completionRate%;"></div>
+                </div>
+                <small class="text-muted">@completionRate.ToString("N0")% completion rate</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Unpaid Invoices -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="info-box bg-white">
+            <span class="info-box-icon" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <i class="fas fa-exclamation-triangle"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-muted">Unpaid Invoices</span>
+                <span class="info-box-number fs-3 fw-bold">@Model.UnpaidInvoices</span>
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                </div>
+                <small class="text-muted">Requires attention</small>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Total Amount -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="info-box bg-white">
+            <span class="info-box-icon" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <i class="fas fa-dollar-sign"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text text-muted">Total PO Value</span>
+                <span class="info-box-number fs-3 fw-bold">₹@Model.TotalPoAmount.ToString("N2")</span>
+                <div class="progress mt-2" style="height: 4px;">
+                    <div class="progress-bar" style="width: 100%; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Purchase Orders -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-clock me-2 text-primary"></i>Recent Purchase Orders
+                </h3>
+                <a asp-controller="PurchaseOrders" asp-action="Index" class="btn btn-sm btn-primary">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                @if (Model.RecentPOs.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>PO Number</th>
+                                    <th>Supplier</th>
+                                    <th>Amount</th>
+                                    <th>Created Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var po in Model.RecentPOs)
+                                {
+                                    <tr>
+                                        <td>
+                                            <a asp-controller="PurchaseOrders" asp-action="Details" asp-route-id="@po.PoId" class="fw-semibold text-decoration-none">
+                                                @po.PoNumber
+                                            </a>
+                                        </td>
+                                        <td>@po.SupplierName</td>
+                                        <td class="fw-semibold">₹@po.PoAmount.ToString("N2")</td>
+                                        <td>@po.CreatedDate.ToString("MMM d, yyyy")</td>
+                                        <td>
+                                            @if (po.IsCompleted)
+                                            {
+                                                <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <a asp-controller="PurchaseOrders" asp-action="Details" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a asp-controller="PurchaseOrders" asp-action="Edit" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                        <p class="text-muted mb-3">No purchase orders yet</p>
+                        <a asp-controller="PurchaseOrders" asp-action="Create" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Create First PO
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title mb-0">
+                    <i class="fas fa-bolt me-2 text-warning"></i>Quick Actions
+                </h3>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a asp-controller="PurchaseOrders" asp-action="Create" class="btn btn-primary w-100 py-3">
+                            <i class="fas fa-plus-circle me-2"></i>New Purchase Order
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="Invoices" asp-action="Create" class="btn btn-success w-100 py-3">
+                            <i class="fas fa-file-invoice me-2"></i>New Invoice
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a asp-controller="Invoices" asp-action="Index" class="btn btn-info w-100 py-3 text-white">
+                            <i class="fas fa-list me-2"></i>View All Invoices
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

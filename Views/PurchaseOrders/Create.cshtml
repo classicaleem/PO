@@ -1,0 +1,294 @@
+@model PurchaseOrderViewModel
+@{
+    ViewData["Title"] = "Create Purchase Order";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-plus-circle me-3"></i>Create Purchase Order</h1>
+            <p class="mb-0 opacity-75">Add a new purchase order with items</p>
+        </div>
+        <a asp-action="Index" class="btn btn-light">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" id="poForm">
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+    
+    <div class="row">
+        <!-- PO Header Section -->
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>PO Header</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label asp-for="InternalPoCode" class="form-label fw-semibold">Internal PO Code</label>
+                            <input asp-for="InternalPoCode" class="form-control" readonly style="background-color: #e9ecef;" />
+                            <small class="text-muted">Auto-generated</small>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label asp-for="PoNumber" class="form-label fw-semibold">PO Number *</label>
+                            <input asp-for="PoNumber" class="form-control" placeholder="e.g., PO-2024-001" />
+                            <span asp-validation-for="PoNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="CustomerId" class="form-label fw-semibold">Customer *</label>
+                            <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select select2-customer" id="customerSelect">
+                                <option value="">-- Select Customer --</option>
+                            </select>
+                            <span asp-validation-for="CustomerId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12" id="customerDetailsDiv" style="display: none;">
+                            <label class="form-label fw-semibold">Customer Details</label>
+                            <textarea id="customerDetails" class="form-control" rows="3" readonly style="background-color: #f8f9fa;"></textarea>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="PoDate" class="form-label fw-semibold">PO Date *</label>
+                            <input asp-for="PoDate" class="form-control" type="date" />
+                            <span asp-validation-for="PoDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="StartDate" class="form-label fw-semibold">Start Date</label>
+                            <input asp-for="StartDate" class="form-control" type="date" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="EndDate" class="form-label fw-semibold">End Date</label>
+                            <input asp-for="EndDate" class="form-control" type="date" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Section -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>PO Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Total Items:</span>
+                        <span id="totalItems" class="fw-bold">0</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">PO Amount:</span>
+                        <span id="poAmount" class="h4 mb-0 text-primary">₹0.00</span>
+                    </div>
+                    <input type="hidden" asp-for="PoAmount" id="poAmountInput" />
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-save me-2"></i>Save Purchase Order
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Section -->
+    <div class="card mt-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>PO Items</h5>
+            <button type="button" class="btn btn-sm btn-primary" id="addItemBtn">
+                <i class="fas fa-plus me-1"></i>Add Item
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="itemsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 5%;">#</th>
+                            <th style="width: 40%;">Item Description *</th>
+                            <th style="width: 15%;">Quantity *</th>
+                            <th style="width: 15%;">Unit Price *</th>
+                            <th style="width: 15%;">Line Total</th>
+                            <th style="width: 10%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        @for (int i = 0; i < (Model.Items.Any() ? Model.Items.Count : 1); i++)
+                        {
+                            var item = Model.Items.ElementAtOrDefault(i) ?? new PurchaseOrderItemViewModel();
+                            <tr class="item-row">
+                                <td class="text-center line-number">@(i + 1)</td>
+                                <td>
+                                    <input type="hidden" name="Items[@i].PoItemId" value="@item.PoItemId" />
+                                    <input type="hidden" name="Items[@i].LineNumber" value="@(i + 1)" />
+                                    <input type="text" name="Items[@i].ItemDescription" value="@item.ItemDescription" 
+                                           class="form-control item-description" placeholder="Enter item description" />
+                                </td>
+                                <td>
+                                    <input type="number" name="Items[@i].Quantity" value="@(item.Quantity > 0 ? item.Quantity : "")" 
+                                           class="form-control item-quantity" min="1" placeholder="0" />
+                                </td>
+                                <td>
+                                    <input type="number" name="Items[@i].UnitPrice" value="@(item.UnitPrice > 0 ? item.UnitPrice : "")" 
+                                           class="form-control item-price" min="0.01" step="0.01" placeholder="0.00" />
+                                </td>
+                                <td>
+                                    <input type="text" class="form-control item-total" value="@item.LineTotal.ToString("N2")" readonly 
+                                           style="background-color: #e9ecef;" />
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Maximum 10 items allowed per PO</small>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2 for customer dropdown
+            $('.select2-customer').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Search for a customer...',
+                allowClear: true
+            });
+
+            // Customer selection - fetch details
+            $('#customerSelect').on('change', function() {
+                var customerId = $(this).val();
+                if (customerId) {
+                    $.get('@Url.Action("GetCustomerDetails", "Customers")', { id: customerId }, function(data) {
+                        $('#customerDetailsDiv').show();
+                        $('#customerDetails').val(data.customerName + '\n' + data.address + '\nGST: ' + (data.gstNumber || 'N/A'));
+                    });
+                } else {
+                    $('#customerDetailsDiv').hide();
+                    $('#customerDetails').val('');
+                }
+            });
+
+            // Calculate line totals and PO amount
+            function calculateTotals() {
+                var totalAmount = 0;
+                var itemCount = 0;
+
+                $('#itemsBody tr.item-row').each(function() {
+                    var qty = parseFloat($(this).find('.item-quantity').val()) || 0;
+                    var price = parseFloat($(this).find('.item-price').val()) || 0;
+                    var lineTotal = qty * price;
+                    
+                    $(this).find('.item-total').val(lineTotal.toFixed(2));
+                    
+                    if ($(this).find('.item-description').val().trim() !== '') {
+                        totalAmount += lineTotal;
+                        if (qty > 0) itemCount++;
+                    }
+                });
+
+                $('#totalItems').text(itemCount);
+                $('#poAmount').text('₹' + totalAmount.toFixed(2));
+                $('#poAmountInput').val(totalAmount.toFixed(2));
+
+                // Update line numbers
+                $('#itemsBody tr.item-row').each(function(index) {
+                    $(this).find('.line-number').text(index + 1);
+                    $(this).find('input[name*="LineNumber"]').val(index + 1);
+                    
+                    // Update field names
+                    $(this).find('input').each(function() {
+                        var name = $(this).attr('name');
+                        if (name) {
+                            $(this).attr('name', name.replace(/\[\d+\]/, '[' + index + ']'));
+                        }
+                    });
+                });
+            }
+
+            // Bind calculate to quantity/price changes
+            $(document).on('input', '.item-quantity, .item-price', calculateTotals);
+
+            // Add new item row
+            $('#addItemBtn').on('click', function() {
+                var rowCount = $('#itemsBody tr.item-row').length;
+                if (rowCount >= 10) {
+                    alert('Maximum 10 items allowed per PO');
+                    return;
+                }
+
+                var newRow = `
+                    <tr class="item-row">
+                        <td class="text-center line-number">${rowCount + 1}</td>
+                        <td>
+                            <input type="hidden" name="Items[${rowCount}].PoItemId" value="0" />
+                            <input type="hidden" name="Items[${rowCount}].LineNumber" value="${rowCount + 1}" />
+                            <input type="text" name="Items[${rowCount}].ItemDescription" 
+                                   class="form-control item-description" placeholder="Enter item description" />
+                        </td>
+                        <td>
+                            <input type="number" name="Items[${rowCount}].Quantity" 
+                                   class="form-control item-quantity" min="1" placeholder="0" />
+                        </td>
+                        <td>
+                            <input type="number" name="Items[${rowCount}].UnitPrice" 
+                                   class="form-control item-price" min="0.01" step="0.01" placeholder="0.00" />
+                        </td>
+                        <td>
+                            <input type="text" class="form-control item-total" value="0.00" readonly 
+                                   style="background-color: #e9ecef;" />
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $('#itemsBody').append(newRow);
+                calculateTotals();
+            });
+
+            // Remove item row
+            $(document).on('click', '.remove-item-btn', function() {
+                var rowCount = $('#itemsBody tr.item-row').length;
+                if (rowCount <= 1) {
+                    alert('At least one item is required');
+                    return;
+                }
+                $(this).closest('tr').remove();
+                calculateTotals();
+            });
+
+            // Initial calculation
+            calculateTotals();
+
+            // Validation display
+            if ($('.field-validation-error').length > 0 || $('.validation-summary-errors').length > 0) {
+                $('.alert-danger').show();
+            }
+        });
+    </script>
+}

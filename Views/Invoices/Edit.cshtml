@@ -1,0 +1,108 @@
+@model InvoiceViewModel
+@{
+    ViewData["Title"] = "Edit Invoice";
+}
+
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-edit me-3"></i>Edit Invoice</h1>
+            <p class="mb-0 opacity-75">@Model.InvoiceNumber</p>
+        </div>
+        <a asp-action="Index" class="btn btn-light">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="InvoiceId" />
+                    <input type="hidden" asp-for="PoId" />
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-file-invoice me-2 text-success"></i>Invoice Details</h5>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Purchase Order</label>
+                            <input type="text" class="form-control" value="@Model.InternalPoCode - @Model.CustomerName" readonly style="background-color: #e9ecef;" />
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="InvoiceNumber" class="form-label fw-semibold">Invoice Number *</label>
+                            <input asp-for="InvoiceNumber" class="form-control" />
+                            <span asp-validation-for="InvoiceNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="InvoiceDate" class="form-label fw-semibold">Invoice Date *</label>
+                            <input asp-for="InvoiceDate" class="form-control" type="date" />
+                            <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="TotalAmount" class="form-label fw-semibold">Total Amount</label>
+                            <div class="input-group">
+                                <span class="input-group-text">₹</span>
+                                <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Payment Status</label>
+                            <div class="form-check mt-2">
+                                <input asp-for="IsPaid" class="form-check-input" />
+                                <label asp-for="IsPaid" class="form-check-label">Mark as Paid</label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="UseDifferentShippingAddress" class="form-check-input" id="useDiffShipping" />
+                                <label asp-for="UseDifferentShippingAddress" class="form-check-label">
+                                    Use different shipping address
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12" id="shippingDiv" style="@(Model.UseDifferentShippingAddress ? "" : "display: none;")">
+                            <label asp-for="ShippingAddress" class="form-label fw-semibold">Shipping Address</label>
+                            <textarea asp-for="ShippingAddress" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success px-4">
+                            <i class="fas fa-save me-2"></i>Update Invoice
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            $('#useDiffShipping').on('change', function() {
+                $('#shippingDiv').toggle($(this).is(':checked'));
+            });
+
+            if ($('.field-validation-error').length > 0) {
+                $('.alert-danger').show();
+            }
+        });
+    </script>
+}

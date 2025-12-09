@@ -1,0 +1,55 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Login";
+    Layout = "_LoginLayout";
+}
+
+<div class="card">
+    <div class="card-header">
+        <div class="login-logo">
+            <i class="fas fa-shopping-cart"></i>PO Management
+        </div>
+        <p class="text-muted mb-0">Sign in to access the system</p>
+    </div>
+    <div class="card-body">
+        <form asp-action="Login" method="post">
+            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+            
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @Html.ValidationSummary(true, "", new { @class = "mb-0" })
+                </div>
+            }
+            
+            <div class="input-group">
+                <span class="input-icon"><i class="fas fa-user"></i></span>
+                <input asp-for="Username" class="form-control" placeholder="Username" autofocus />
+            </div>
+            <span asp-validation-for="Username" class="text-danger"></span>
+            
+            <div class="input-group">
+                <span class="input-icon"><i class="fas fa-lock"></i></span>
+                <input asp-for="Password" class="form-control" placeholder="Password" />
+            </div>
+            <span asp-validation-for="Password" class="text-danger"></span>
+            
+            <div class="form-check mb-4">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </button>
+        </form>
+        
+        <div class="mt-4 text-center text-muted">
+            <small>
+                <i class="fas fa-info-circle me-1"></i>
+                Demo: admin/admin123 or user/user123
+            </small>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,112 @@
+@model IEnumerable<Invoice>
+@{
+    ViewData["Title"] = "Invoices";
+}
+
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-receipt me-3"></i>Invoices</h1>
+            <p class="mb-0 opacity-75">Manage all invoices</p>
+        </div>
+        <a asp-action="Create" class="btn btn-light">
+            <i class="fas fa-plus me-2"></i>Create Invoice
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="invoicesTable">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>PO Code</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var invoice in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@invoice.InvoiceId" class="fw-bold text-decoration-none">
+                                        @invoice.InvoiceNumber
+                                    </a>
+                                </td>
+                                <td>
+                                    <a asp-controller="PurchaseOrders" asp-action="Details" asp-route-id="@invoice.PoId" class="text-decoration-none">
+                                        @invoice.InternalPoCode
+                                    </a>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(invoice.CustomerName))
+                                    {
+                                        <span class="badge bg-info">@invoice.CustomerName</span>
+                                    }
+                                </td>
+                                <td>@invoice.InvoiceDate.ToString("MMM d, yyyy")</td>
+                                <td class="fw-semibold">₹@invoice.TotalAmount.ToString("N2")</td>
+                                <td>
+                                    @if (invoice.IsPaid)
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Paid</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Unpaid</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-info" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="PrintInvoice" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-secondary" title="Print" target="_blank">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-receipt fa-4x text-muted mb-3"></i>
+                <p class="text-muted mb-3">No invoices found</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create First Invoice
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#invoicesTable').DataTable({
+                "pageLength": 25,
+                "order": [[3, "desc"]]
+            });
+        });
+    </script>
+}

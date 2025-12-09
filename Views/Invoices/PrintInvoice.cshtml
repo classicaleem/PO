@@ -1,0 +1,197 @@
+@model Invoice
+@{
+    ViewData["Title"] = "Print Invoice - " + Model.InvoiceNumber;
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; font-size: 14px; }
+        .company-header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 20px; }
+        .company-name { font-size: 1.5rem; font-weight: bold; }
+        .invoice-title { font-size: 1.8rem; font-weight: bold; background: #f8f9fa; padding: 10px 20px; border-bottom: 3px solid #11998e; }
+        .section-title { font-weight: bold; color: #11998e; border-bottom: 2px solid #11998e; padding-bottom: 5px; margin-bottom: 15px; }
+        .address-box { background: #f8f9fa; padding: 15px; border-radius: 5px; min-height: 120px; }
+        .items-table th { background: #11998e; color: white; }
+        .total-row { font-size: 1.2rem; font-weight: bold; }
+        @@media print {
+            .no-print { display: none !important; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Print Button -->
+    <div class="container mt-3 no-print">
+        <button onclick="window.print()" class="btn btn-success me-2"><i class="fas fa-print me-2"></i>Print</button>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">Back to List</a>
+    </div>
+
+    <div class="container my-4">
+        <!-- Company Header -->
+        <div class="company-header rounded-top">
+            <div class="row">
+                <div class="col-8">
+                    <div class="company-name">SIM Auto Parts Pvt. Ltd.</div>
+                    <div>123 Industrial Estate, Anna Salai</div>
+                    <div>Chennai, Tamil Nadu - 600001</div>
+                    <div>GST: 33AABCS1234E1Z5 | Phone: +91-44-2852-0000</div>
+                </div>
+                <div class="col-4 text-end">
+                    <div class="invoice-title bg-white text-dark rounded">TAX INVOICE</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Info -->
+        <div class="row border border-top-0 p-3">
+            <div class="col-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" width="120">Invoice No:</td><td class="fw-bold">@Model.InvoiceNumber</td></tr>
+                    <tr><td class="text-muted">Invoice Date:</td><td>@Model.InvoiceDate.ToString("dd MMM yyyy")</td></tr>
+                </table>
+            </div>
+            <div class="col-6">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr><td class="text-muted" width="120">PO Code:</td><td>@Model.InternalPoCode</td></tr>
+                    <tr><td class="text-muted">PO Number:</td><td>@Model.PoNumber</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- From / To / Ship To -->
+        <div class="row border border-top-0">
+            <div class="col-4 p-3">
+                <div class="section-title">From</div>
+                <div class="address-box">
+                    <div class="fw-bold">SIM Auto Parts Pvt. Ltd.</div>
+                    <div>123 Industrial Estate</div>
+                    <div>Anna Salai</div>
+                    <div>Chennai, Tamil Nadu - 600001</div>
+                    <div><strong>GST:</strong> 33AABCS1234E1Z5</div>
+                </div>
+            </div>
+            <div class="col-4 p-3">
+                <div class="section-title">Bill To</div>
+                <div class="address-box">
+                    @if (Model.Customer != null)
+                    {
+                        <div class="fw-bold">@Model.Customer.CustomerName</div>
+                        <div>@Model.Customer.FullAddress</div>
+                        @if (!string.IsNullOrEmpty(Model.Customer.GstNumber))
+                        {
+                            <div><strong>GST:</strong> @Model.Customer.GstNumber</div>
+                        }
+                    }
+                </div>
+            </div>
+            <div class="col-4 p-3">
+                <div class="section-title">Ship To</div>
+                <div class="address-box">
+                    @if (!string.IsNullOrEmpty(Model.ShippingAddress))
+                    {
+                        <div>@Model.ShippingAddress</div>
+                    }
+                    else if (Model.Customer != null)
+                    {
+                        <div class="fw-bold">@Model.Customer.CustomerName</div>
+                        <div>@Model.Customer.FullAddress</div>
+                    }
+                    else
+                    {
+                        <div class="text-muted">Same as billing address</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Items Table -->
+        <div class="border border-top-0 p-3">
+            <div class="section-title">Invoice Items</div>
+            <table class="table table-bordered items-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;">#</th>
+                        <th style="width: 50%;">Description</th>
+                        <th style="width: 15%;" class="text-end">Qty</th>
+                        <th style="width: 15%;" class="text-end">Rate</th>
+                        <th style="width: 15%;" class="text-end">Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{ var itemNum = 1; }
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td class="text-center">@itemNum</td>
+                            <td>@item.ItemDescription</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">₹@item.UnitPrice.ToString("N2")</td>
+                            <td class="text-end">₹@item.LineAmount.ToString("N2")</td>
+                        </tr>
+                        itemNum++;
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Sub Total:</strong></td>
+                        <td class="text-end"><strong>₹@Model.TotalAmount.ToString("N2")</strong></td>
+                    </tr>
+                    @if (Model.Customer != null && Model.Customer.DefaultCgstPercent > 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-end">CGST (@Model.Customer.DefaultCgstPercent%):</td>
+                            <td class="text-end">₹@((Model.TotalAmount * Model.Customer.DefaultCgstPercent / 100).ToString("N2"))</td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end">SGST (@Model.Customer.DefaultSgstPercent%):</td>
+                            <td class="text-end">₹@((Model.TotalAmount * Model.Customer.DefaultSgstPercent / 100).ToString("N2"))</td>
+                        </tr>
+                    }
+                    else if (Model.Customer != null && Model.Customer.DefaultIgstPercent > 0)
+                    {
+                        <tr>
+                            <td colspan="4" class="text-end">IGST (@Model.Customer.DefaultIgstPercent%):</td>
+                            <td class="text-end">₹@((Model.TotalAmount * Model.Customer.DefaultIgstPercent / 100).ToString("N2"))</td>
+                        </tr>
+                    }
+                    <tr class="total-row table-success">
+                        <td colspan="4" class="text-end">Grand Total:</td>
+                        @{
+                            var grandTotal = Model.TotalAmount;
+                            if (Model.Customer != null) {
+                                grandTotal += Model.TotalAmount * (Model.Customer.DefaultCgstPercent + Model.Customer.DefaultSgstPercent + Model.Customer.DefaultIgstPercent) / 100;
+                            }
+                        }
+                        <td class="text-end">₹@grandTotal.ToString("N2")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="border border-top-0 p-3">
+            <div class="row">
+                <div class="col-6">
+                    <p class="text-muted small mb-0">Payment Terms: Net 30 days</p>
+                    <p class="text-muted small mb-0">Bank: State Bank of India</p>
+                    <p class="text-muted small">A/C: 1234567890 | IFSC: SBIN0001234</p>
+                </div>
+                <div class="col-6 text-end">
+                    <div class="mt-4 pt-4 border-top" style="width: 200px; margin-left: auto;">
+                        <p class="mb-0 text-muted">Authorized Signature</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+</body>
+</html>

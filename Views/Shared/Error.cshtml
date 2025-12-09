@@ -1,0 +1,31 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="container-fluid">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 col-lg-4">
+            <div class="card text-center">
+                <div class="card-body py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-circle fa-5x text-danger"></i>
+                    </div>
+                    <h2 class="card-title">An Error Occurred</h2>
+                    <p class="card-text text-muted mb-4">
+                        Sorry, something went wrong while processing your request.
+                    </p>
+                    @if (Model?.RequestId != null)
+                    {
+                        <p class="text-muted">
+                            <small>Request ID: <code>@Model.RequestId</code></small>
+                        </p>
+                    }
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Back to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,99 @@
+@using System.Security.Claims
+@{
+    var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
+    var isAdmin = role == "Admin";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+<!-- Sidebar -->
+<aside class="app-sidebar bg-body-secondary shadow" data-bs-theme="dark">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+        <a href="@Url.Action("Index", "Home")" class="brand-link">
+            <span class="brand-image">
+                <i class="fas fa-shopping-cart fa-2x" style="color: #667eea;"></i>
+            </span>
+            <span class="brand-text fw-bold" style="color: #fff;">PO Management</span>
+        </a>
+    </div>
+
+    <!-- Sidebar Menu -->
+    <div class="sidebar-wrapper">
+        <nav class="mt-2">
+            <ul class="nav sidebar-menu flex-column" data-lte-toggle="treeview" role="menu" data-accordion="false">
+                
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Home")" class="nav-link @(currentController == "Home" ? "active" : "")">
+                        <i class="nav-icon fas fa-tachometer-alt"></i>
+                        <p>Dashboard</p>
+                    </a>
+                </li>
+
+                <!-- Customers -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Customers")" class="nav-link @(currentController == "Customers" ? "active" : "")">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>Customers</p>
+                    </a>
+                </li>
+
+                <!-- Purchase Orders -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "PurchaseOrders")" class="nav-link @(currentController == "PurchaseOrders" ? "active" : "")">
+                        <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                        <p>Purchase Orders</p>
+                    </a>
+                </li>
+
+                <!-- Invoices -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Invoices")" class="nav-link @(currentController == "Invoices" ? "active" : "")">
+                        <i class="nav-icon fas fa-receipt"></i>
+                        <p>Invoices</p>
+                    </a>
+                </li>
+
+                @if (isAdmin)
+                {
+                    <!-- Reports (Admin Only) -->
+                    <li class="nav-item @(currentController == "Reports" ? "menu-open" : "")">
+                        <a href="#" class="nav-link @(currentController == "Reports" ? "active" : "")">
+                            <i class="nav-icon fas fa-chart-bar"></i>
+                            <p>
+                                Reports
+                                <i class="nav-arrow fas fa-angle-left"></i>
+                            </p>
+                        </a>
+                        <ul class="nav nav-treeview">
+                            <li class="nav-item">
+                                <a href="@Url.Action("Index", "Reports")" class="nav-link @(currentAction == "Index" && currentController == "Reports" ? "active" : "")">
+                                    <i class="nav-icon fas fa-circle nav-icon-bullet"></i>
+                                    <p>PO Summary</p>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="@Url.Action("PendingQuantity", "Reports")" class="nav-link @(currentAction == "PendingQuantity" ? "active" : "")">
+                                    <i class="nav-icon fas fa-circle nav-icon-bullet"></i>
+                                    <p>Pending Quantity</p>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                }
+
+                <li class="nav-header mt-3">ACCOUNT</li>
+                
+                <!-- Logout -->
+                <li class="nav-item">
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline w-100">
+                        <button type="submit" class="nav-link border-0 bg-transparent text-start w-100" style="cursor: pointer;">
+                            <i class="nav-icon fas fa-sign-out-alt"></i>
+                            <p>Logout</p>
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</aside>

@@ -1,0 +1,116 @@
+@model IEnumerable<PurchaseOrder>
+@{
+    ViewData["Title"] = "Purchase Orders";
+}
+
+<!-- Page Header -->
+<div class="page-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-file-invoice-dollar me-3"></i>Purchase Orders</h1>
+            <p class="mb-0 opacity-75">Manage all purchase orders</p>
+        </div>
+        <a asp-action="Create" class="btn btn-light">
+            <i class="fas fa-plus me-2"></i>Create New PO
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover" id="poTable">
+                    <thead>
+                        <tr>
+                            <th>Internal Code</th>
+                            <th>PO Number</th>
+                            <th>Customer</th>
+                            <th>Amount</th>
+                            <th>PO Date</th>
+                            <th>Created By</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var po in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-action="Details" asp-route-id="@po.PoId" class="fw-bold text-decoration-none">
+                                        @po.InternalPoCode
+                                    </a>
+                                </td>
+                                <td>@po.PoNumber</td>
+                                <td>
+                                    @if (!string.IsNullOrEmpty(po.CustomerName))
+                                    {
+                                        <span class="badge bg-info">@po.CustomerName</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">@po.SupplierName</span>
+                                    }
+                                </td>
+                                <td class="fw-semibold">₹@po.PoAmount.ToString("N2")</td>
+                                <td>@(po.PoDate?.ToString("MMM d, yyyy") ?? po.CreatedDate.ToString("MMM d, yyyy"))</td>
+                                <td>
+                                    <span class="badge bg-secondary">@po.CreatedByUsername</span>
+                                </td>
+                                <td>
+                                    @if (po.IsCompleted)
+                                    {
+                                        <span class="badge bg-success"><i class="fas fa-check me-1"></i>Completed</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Pending</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <div class="btn-group" role="group">
+                                        <a asp-action="Details" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-info" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a asp-action="Edit" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="PrintPo" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-secondary" title="Print PO" target="_blank">
+                                            <i class="fas fa-print"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="fas fa-inbox fa-4x text-muted mb-3"></i>
+                <p class="text-muted mb-3">No purchase orders found</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Create First PO
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#poTable').DataTable({
+                "pageLength": 25,
+                "order": [[4, "desc"]]
+            });
+        });
+    </script>
+}

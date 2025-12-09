@@ -1,0 +1,272 @@
+@model InvoiceViewModel
+@{
+    ViewData["Title"] = "Create Invoice";
+}
+
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-plus-circle me-3"></i>Create Invoice</h1>
+            <p class="mb-0 opacity-75">Add a new invoice against a Purchase Order</p>
+        </div>
+        <a asp-action="Index" class="btn btn-light">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" id="invoiceForm">
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+    
+    <div class="row">
+        <!-- Invoice Header -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Invoice Header</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label asp-for="PoId" class="form-label fw-semibold">Purchase Order *</label>
+                            <select asp-for="PoId" asp-items="Model.PurchaseOrders" class="form-select select2-po" id="poSelect">
+                                <option value="">-- Select Purchase Order --</option>
+                            </select>
+                            <span asp-validation-for="PoId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12" id="poDetailsDiv" style="display: none;">
+                            <div class="bg-light p-3 rounded">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="text-muted small">Customer</label>
+                                        <p id="customerName" class="fw-bold mb-2"></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="text-muted small">PO Info</label>
+                                        <p id="poInfo" class="mb-2"></p>
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="text-muted small">Customer Address</label>
+                                        <p id="customerAddress" class="mb-0"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="InvoiceNumber" class="form-label fw-semibold">Invoice Number *</label>
+                            <input asp-for="InvoiceNumber" class="form-control" placeholder="e.g., INV-2024-001" />
+                            <span asp-validation-for="InvoiceNumber" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="InvoiceDate" class="form-label fw-semibold">Invoice Date *</label>
+                            <input asp-for="InvoiceDate" class="form-control" type="date" />
+                            <span asp-validation-for="InvoiceDate" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input asp-for="UseDifferentShippingAddress" class="form-check-input" id="useDiffShipping" />
+                                <label asp-for="UseDifferentShippingAddress" class="form-check-label">
+                                    Use different shipping address
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12" id="shippingDiv" style="display: none;">
+                            <label asp-for="ShippingAddress" class="form-label fw-semibold">Shipping Address</label>
+                            <textarea asp-for="ShippingAddress" class="form-control" rows="3" placeholder="Enter shipping address..."></textarea>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input asp-for="IsPaid" class="form-check-input" />
+                                <label asp-for="IsPaid" class="form-check-label">Mark as Paid</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Invoice Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Line Items:</span>
+                        <span id="lineItemCount" class="fw-bold">0</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">Total:</span>
+                        <span id="invoiceTotal" class="h4 mb-0 text-success">₹0.00</span>
+                    </div>
+                    <input type="hidden" asp-for="TotalAmount" id="totalAmountInput" />
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-success w-100 mb-2">
+                        <i class="fas fa-save me-2"></i>Create Invoice
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary w-100">Cancel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Items Section -->
+    <div class="card mt-4" id="itemsCard" style="display: none;">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-list me-2"></i>Invoice Items</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered" id="itemsTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 30%;">Item Description</th>
+                            <th style="width: 10%;" class="text-end">Ordered</th>
+                            <th style="width: 10%;" class="text-end">Invoiced</th>
+                            <th style="width: 10%;" class="text-end">Pending</th>
+                            <th style="width: 15%;" class="text-end">This Invoice Qty *</th>
+                            <th style="width: 10%;" class="text-end">Unit Price</th>
+                            <th style="width: 15%;" class="text-end">Line Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsBody">
+                        <!-- Populated via JS -->
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light">
+                            <th colspan="6" class="text-end">Total Invoice Amount:</th>
+                            <th class="text-end text-success fs-5" id="footerTotal">₹0.00</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle me-2"></i>
+                Enter quantity for each item to be invoiced. Quantity cannot exceed pending quantity.
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            // Initialize Select2
+            $('.select2-po').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Search for a PO by code or number...',
+                allowClear: true
+            });
+
+            // Toggle shipping address
+            $('#useDiffShipping').on('change', function() {
+                $('#shippingDiv').toggle($(this).is(':checked'));
+            });
+
+            // PO selection - load items
+            $('#poSelect').on('change', function() {
+                var poId = $(this).val();
+                if (poId) {
+                    $.get('@Url.Action("GetPoItems", "Invoices")', { poId: poId }, function(data) {
+                        $('#poDetailsDiv').show();
+                        $('#customerName').text(data.customerName);
+                        $('#poInfo').text(data.internalPoCode + ' - ' + data.poNumber);
+                        $('#customerAddress').text(data.customerAddress);
+
+                        // Populate items
+                        var html = '';
+                        var idx = 0;
+                        $.each(data.items, function(i, item) {
+                            html += `
+                                <tr class="item-row" data-pending="${item.pendingQuantity}">
+                                    <td>
+                                        <input type="hidden" name="Items[${idx}].PoItemId" value="${item.poItemId}" />
+                                        <input type="hidden" name="Items[${idx}].ItemDescription" value="${item.itemDescription}" />
+                                        <input type="hidden" name="Items[${idx}].OrderedQuantity" value="${item.orderedQuantity}" />
+                                        <input type="hidden" name="Items[${idx}].PreviouslyInvoiced" value="${item.previouslyInvoiced}" />
+                                        <input type="hidden" name="Items[${idx}].PendingQuantity" value="${item.pendingQuantity}" />
+                                        <input type="hidden" name="Items[${idx}].UnitPrice" value="${item.unitPrice}" />
+                                        ${item.itemDescription}
+                                    </td>
+                                    <td class="text-end">${item.orderedQuantity}</td>
+                                    <td class="text-end">${item.previouslyInvoiced}</td>
+                                    <td class="text-end">
+                                        <span class="badge ${item.pendingQuantity > 0 ? 'bg-warning text-dark' : 'bg-success'}">${item.pendingQuantity}</span>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="Items[${idx}].ThisInvoiceQuantity" 
+                                               class="form-control item-qty" min="0" max="${item.pendingQuantity}" 
+                                               value="0" ${item.pendingQuantity === 0 ? 'disabled' : ''} />
+                                    </td>
+                                    <td class="text-end">₹${item.unitPrice.toFixed(2)}</td>
+                                    <td class="text-end item-amount">₹0.00</td>
+                                </tr>
+                            `;
+                            idx++;
+                        });
+                        $('#itemsBody').html(html);
+                        $('#itemsCard').show();
+                        calculateTotal();
+                    });
+                } else {
+                    $('#poDetailsDiv').hide();
+                    $('#itemsCard').hide();
+                    $('#itemsBody').html('');
+                }
+            });
+
+            // Calculate totals
+            function calculateTotal() {
+                var total = 0;
+                var count = 0;
+                $('#itemsBody tr.item-row').each(function() {
+                    var qty = parseFloat($(this).find('.item-qty').val()) || 0;
+                    var price = parseFloat($(this).find('input[name*="UnitPrice"]').val()) || 0;
+                    var amount = qty * price;
+                    $(this).find('.item-amount').text('₹' + amount.toFixed(2));
+                    $(this).find('input[name*="LineAmount"]').val(amount.toFixed(2));
+                    total += amount;
+                    if (qty > 0) count++;
+                });
+                $('#lineItemCount').text(count);
+                $('#invoiceTotal').text('₹' + total.toFixed(2));
+                $('#footerTotal').text('₹' + total.toFixed(2));
+                $('#totalAmountInput').val(total.toFixed(2));
+            }
+
+            $(document).on('input', '.item-qty', function() {
+                var max = parseInt($(this).attr('max'));
+                var val = parseInt($(this).val()) || 0;
+                if (val > max) {
+                    $(this).val(max);
+                    alert('Quantity cannot exceed pending quantity (' + max + ')');
+                }
+                calculateTotal();
+            });
+
+            // Load PO items if pre-selected
+            if ($('#poSelect').val()) {
+                $('#poSelect').trigger('change');
+            }
+
+            // Show validation errors
+            if ($('.field-validation-error').length > 0 || $('.validation-summary-errors').length > 0) {
+                $('.alert-danger').show();
+            }
+        });
+    </script>
+}
