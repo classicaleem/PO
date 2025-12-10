@@ -37,7 +37,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.RoundOff, p.GrandTotal,
                                p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
@@ -54,7 +54,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.RoundOff, p.GrandTotal,
                                p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
@@ -71,7 +71,7 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.RoundOff, p.GrandTotal,
                                p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
@@ -100,7 +100,7 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.RoundOff, p.GrandTotal,
                                p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
@@ -138,12 +138,32 @@ namespace HRPackage.Repositories
             
             try
             {
+                decimal subTotal = po.PoAmount; // Assuming this comes correct or we should limit items?
+                // Better recalculate from items if possible, but PO logic might differ. 
+                // Let's assume POAmount is sum of items.
+                if (items.Any())
+                {
+                   subTotal = items.Sum(i => i.LineTotal);
+                   po.PoAmount = subTotal;
+                }
+                   
+                decimal tax = (subTotal * po.CgstPercent / 100) + 
+                              (subTotal * po.SgstPercent / 100) + 
+                              (subTotal * po.IgstPercent / 100);
+                              
+                po.TaxAmount = tax;
+                decimal totalWithTax = subTotal + tax;
+                decimal roundedTotal = Math.Round(totalWithTax, 0, MidpointRounding.AwayFromZero);
+                
+                po.RoundOff = roundedTotal - totalWithTax;
+                po.GrandTotal = roundedTotal;
+
                 // Insert PO header
                 var poSql = @"INSERT INTO PurchaseOrders (PoNumber, InternalPoCode, CustomerId, SupplierName, 
-                                   PoAmount, CgstPercent, SgstPercent, IgstPercent, TaxAmount, GrandTotal,
+                                   PoAmount, CgstPercent, SgstPercent, IgstPercent, TaxAmount, RoundOff, GrandTotal,
                                    PoDate, StartDate, EndDate, CreatedDate, CreatedByUserId, IsCompleted, IsDeleted)
                               VALUES (@PoNumber, @InternalPoCode, @CustomerId, @SupplierName, 
-                                   @PoAmount, @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @GrandTotal,
+                                   @PoAmount, @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @RoundOff, @GrandTotal,
                                    @PoDate, @StartDate, @EndDate, GETDATE(), @CreatedByUserId, 0, 0);
                               SELECT CAST(SCOPE_IDENTITY() as int)";
                 var poId = await connection.QuerySingleAsync<int>(poSql, po, transaction);
@@ -179,11 +199,30 @@ namespace HRPackage.Repositories
             
             try
             {
+                // Auto-Round Logic
+                decimal subTotal = po.PoAmount;
+                if (items.Any())
+                {
+                   subTotal = items.Sum(i => i.LineTotal);
+                   po.PoAmount = subTotal;
+                }
+                
+                decimal tax = (subTotal * po.CgstPercent / 100) + 
+                              (subTotal * po.SgstPercent / 100) + 
+                              (subTotal * po.IgstPercent / 100);
+                              
+                po.TaxAmount = tax;
+                decimal totalWithTax = subTotal + tax;
+                decimal roundedTotal = Math.Round(totalWithTax, 0, MidpointRounding.AwayFromZero);
+                
+                po.RoundOff = roundedTotal - totalWithTax;
+                po.GrandTotal = roundedTotal;
+
                 // Update PO header
                 var poSql = @"UPDATE PurchaseOrders 
                               SET PoNumber = @PoNumber, CustomerId = @CustomerId, SupplierName = @SupplierName, 
                                   PoAmount = @PoAmount, CgstPercent = @CgstPercent, SgstPercent = @SgstPercent, 
-                                  IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, GrandTotal = @GrandTotal,
+                                  IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, RoundOff = @RoundOff, GrandTotal = @GrandTotal,
                                   PoDate = @PoDate, StartDate = @StartDate, EndDate = @EndDate,
                                   IsCompleted = @IsCompleted
                               WHERE PoId = @PoId AND IsDeleted = 0";

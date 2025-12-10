@@ -18,6 +18,8 @@ namespace HRPackage.Repositories
         Task<int> GetUnpaidCountAsync();
         Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null);
         Task<List<InvoiceItemViewModel>> GetPoItemsForInvoiceAsync(int poId);
+        Task<List<InvoiceItem>> GetInvoiceItemsAsync(int invoiceId);
+        Task<string> GenerateNextInvoiceNumberAsync();
     }
 
     public class InvoicesRepository : IInvoicesRepository
@@ -33,7 +35,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
-                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.GrandTotal,
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
@@ -48,7 +50,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT InvoiceId, PoId, InvoiceNumber, InvoiceDate, TotalAmount, 
-                               CgstPercent, SgstPercent, IgstPercent, TaxAmount, GrandTotal,
+                               CgstPercent, SgstPercent, IgstPercent, TaxAmount, RoundOff, GrandTotal,
                                ShippingAddress, IsPaid, IsDeleted
                         FROM Invoices
                         WHERE PoId = @poId AND IsDeleted = 0
@@ -60,7 +62,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
-                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.GrandTotal,
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
@@ -75,7 +77,7 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
-                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.GrandTotal,
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
@@ -108,13 +110,34 @@ namespace HRPackage.Repositories
             {
                 // Calculate total amount
                 invoice.TotalAmount = items.Sum(i => i.LineAmount);
+                
+                // Calculate tax
+                // (Assuming TaxAmount is already calculated or we recalculate it here for safety? 
+                // The current code passes TaxAmount from controller. Let's assume controller does math 
+                // OR we trust the incoming model. Let's keep existing pattern but add rounding.)
+                
+                // Auto-Round Logic
+                // If GrandTotal comes in, we might overwrite it OR we calculate fresh.
+                // Safest to calculate fresh from TotalAmount + Taxes so we know it's consistent.
+                
+                decimal subTotal = invoice.TotalAmount;
+                decimal tax = (subTotal * invoice.CgstPercent / 100) + 
+                              (subTotal * invoice.SgstPercent / 100) + 
+                              (subTotal * invoice.IgstPercent / 100);
+                
+                invoice.TaxAmount = tax;
+                decimal totalWithTax = subTotal + tax;
+                decimal roundedTotal = Math.Round(totalWithTax, 0, MidpointRounding.AwayFromZero); // Standard rounding: .5 goes up
+                
+                invoice.RoundOff = roundedTotal - totalWithTax;
+                invoice.GrandTotal = roundedTotal;
 
                 // Insert invoice header
                 var invoiceSql = @"INSERT INTO Invoices (PoId, InvoiceNumber, InvoiceDate, TotalAmount, 
-                                               CgstPercent, SgstPercent, IgstPercent, TaxAmount, GrandTotal,
+                                               CgstPercent, SgstPercent, IgstPercent, TaxAmount, RoundOff, GrandTotal,
                                                ShippingAddress, IsPaid, IsDeleted)
                                    VALUES (@PoId, @InvoiceNumber, @InvoiceDate, @TotalAmount, 
-                                           @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @GrandTotal,
+                                           @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @RoundOff, @GrandTotal,
                                            @ShippingAddress, @IsPaid, 0);
                                    SELECT CAST(SCOPE_IDENTITY() as int)";
                 var invoiceId = await connection.QuerySingleAsync<int>(invoiceSql, invoice, transaction);
@@ -142,11 +165,28 @@ namespace HRPackage.Repositories
 
         public async Task<bool> UpdateAsync(Invoice invoice)
         {
+            // Auto-Round Logic for Update
+            // We need to re-calculate because percentages or amount might have changed.
+            // But here we don't have Items list to verify TotalAmount. 
+            // We assume invoice.TotalAmount is correct from the form/controller.
+            
+            decimal subTotal = invoice.TotalAmount;
+            decimal tax = (subTotal * invoice.CgstPercent / 100) + 
+                          (subTotal * invoice.SgstPercent / 100) + 
+                          (subTotal * invoice.IgstPercent / 100);
+                          
+            invoice.TaxAmount = tax;
+            decimal totalWithTax = subTotal + tax;
+            decimal roundedTotal = Math.Round(totalWithTax, 0, MidpointRounding.AwayFromZero);
+            
+            invoice.RoundOff = roundedTotal - totalWithTax;
+            invoice.GrandTotal = roundedTotal;
+
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"UPDATE Invoices 
                         SET PoId = @PoId, InvoiceNumber = @InvoiceNumber, InvoiceDate = @InvoiceDate, 
                             TotalAmount = @TotalAmount, CgstPercent = @CgstPercent, SgstPercent = @SgstPercent, 
-                            IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, GrandTotal = @GrandTotal,
+                            IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, RoundOff = @RoundOff, GrandTotal = @GrandTotal,
                             ShippingAddress = @ShippingAddress, IsPaid = @IsPaid
                         WHERE InvoiceId = @InvoiceId AND IsDeleted = 0";
             var rowsAffected = await connection.ExecuteAsync(sql, invoice);
@@ -194,9 +234,9 @@ namespace HRPackage.Repositories
                         FROM PurchaseOrderItems poi
                         WHERE poi.PoId = @poId AND poi.IsDeleted = 0
                         ORDER BY poi.LineNumber";
-            
+
             var items = await connection.QueryAsync<dynamic>(sql, new { poId });
-            
+
             return items.Select(i => new InvoiceItemViewModel
             {
                 PoItemId = (int)i.PoItemId,
@@ -208,6 +248,27 @@ namespace HRPackage.Repositories
                 ThisInvoiceQuantity = 0,
                 LineAmount = 0
             }).ToList();
+        }
+        public async Task<string> GenerateNextInvoiceNumberAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT ISNULL(MAX(CAST(RIGHT(InvoiceNumber, 4) AS INT)), 0) + 1 
+                        FROM Invoices 
+                        WHERE InvoiceNumber LIKE 'SIMINV%'";
+            var nextNum = await connection.QuerySingleAsync<int>(sql);
+            return $"SIMINV{nextNum:D4}";
+        }
+
+        public async Task<List<InvoiceItem>> GetInvoiceItemsAsync(int invoiceId)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT ii.InvoiceItemId, ii.InvoiceId, ii.PoItemId, ii.Quantity, ii.UnitPrice, ii.LineAmount,
+                               poi.ItemDescription
+                        FROM InvoiceItems ii
+                        INNER JOIN PurchaseOrderItems poi ON ii.PoItemId = poi.PoItemId
+                        WHERE ii.InvoiceId = @invoiceId";
+            var items = await connection.QueryAsync<InvoiceItem>(sql, new { invoiceId });
+            return items.ToList();
         }
     }
 }

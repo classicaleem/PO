@@ -12,13 +12,19 @@ namespace HRPackage.Controllers
     {
         private readonly IPurchaseOrdersRepository _purchaseOrdersRepository;
         private readonly ICustomersRepository _customersRepository;
+        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
         public PurchaseOrdersController(
             IPurchaseOrdersRepository purchaseOrdersRepository,
-            ICustomersRepository customersRepository)
+            ICustomersRepository customersRepository,
+            HRPackage.Services.IPdfService pdfService,
+            Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _purchaseOrdersRepository = purchaseOrdersRepository;
             _customersRepository = customersRepository;
+            _pdfService = pdfService;
+            _companySettings = companySettings;
         }
 
         public async Task<IActionResult> Index()
@@ -292,29 +298,10 @@ namespace HRPackage.Controllers
                 purchaseOrder.Customer = await _customersRepository.GetByIdAsync(purchaseOrder.CustomerId.Value);
             }
 
-            return new Rotativa.AspNetCore.ViewAsPdf("PrintPo", purchaseOrder)
-            {
-                FileName = $"PO_{purchaseOrder.PoNumber}.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
-            };
+            var pdfBytes = _pdfService.GeneratePurchaseOrderPdf(purchaseOrder, _companySettings.Value);
+            return File(pdfBytes, "application/pdf", $"PO_{purchaseOrder.PoNumber}.pdf");
         }
 
-        // Print view for PDF
-        public async Task<IActionResult> PrintPo(int id)
-        {
-            var purchaseOrder = await _purchaseOrdersRepository.GetByIdWithItemsAsync(id);
-            if (purchaseOrder == null)
-            {
-                return NotFound();
-            }
 
-            if (purchaseOrder.CustomerId.HasValue)
-            {
-                purchaseOrder.Customer = await _customersRepository.GetByIdAsync(purchaseOrder.CustomerId.Value);
-            }
-
-            return View(purchaseOrder);
-        }
     }
 }

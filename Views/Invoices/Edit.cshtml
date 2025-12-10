@@ -3,7 +3,6 @@
     ViewData["Title"] = "Edit Invoice";
 }
 
-<!-- Page Header -->
 <div class="page-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
     <div class="d-flex justify-content-between align-items-center">
         <div>
@@ -16,53 +15,46 @@
     </div>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-8">
-        <div class="card">
-            <div class="card-body p-4">
-                <form asp-action="Edit" method="post">
-                    <input type="hidden" asp-for="InvoiceId" />
-                    <input type="hidden" asp-for="PoId" />
-                    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
-                    
-                    <div class="row g-4">
-                        <div class="col-12">
-                            <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-file-invoice me-2 text-success"></i>Invoice Details</h5>
-                        </div>
-
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="InvoiceId" />
+    <input type="hidden" asp-for="PoId" />
+    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+    
+    <div class="row">
+        <!-- Header -->
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Invoice Details</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
                         <div class="col-12">
                             <label class="form-label fw-semibold">Purchase Order</label>
                             <input type="text" class="form-control" value="@Model.InternalPoCode - @Model.CustomerName" readonly style="background-color: #e9ecef;" />
                         </div>
 
                         <div class="col-md-6">
-                            <label asp-for="InvoiceNumber" class="form-label fw-semibold">Invoice Number *</label>
-                            <input asp-for="InvoiceNumber" class="form-control" />
-                            <span asp-validation-for="InvoiceNumber" class="text-danger"></span>
+                            <label asp-for="InvoiceNumber" class="form-label fw-semibold">Invoice Number</label>
+                            <input asp-for="InvoiceNumber" class="form-control" readonly style="background-color: #e9ecef;" />
                         </div>
                         
                         <div class="col-md-6">
-                            <label asp-for="InvoiceDate" class="form-label fw-semibold">Invoice Date *</label>
+                            <label asp-for="InvoiceDate" class="form-label fw-semibold">Invoice Date</label>
                             <input asp-for="InvoiceDate" class="form-control" type="date" />
                             <span asp-validation-for="InvoiceDate" class="text-danger"></span>
                         </div>
 
-                        <div class="col-md-6">
-                            <label asp-for="TotalAmount" class="form-label fw-semibold">Total Amount</label>
-                            <div class="input-group">
-                                <span class="input-group-text">₹</span>
-                                <input asp-for="TotalAmount" class="form-control" type="number" step="0.01" />
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="col-md-6">
+                                 <div class="form-check mt-4">
+                                    <input asp-for="IsPaid" class="form-check-input" />
+                                    <label asp-for="IsPaid" class="form-check-label fw-bold">Mark as Paid</label>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Payment Status</label>
-                            <div class="form-check mt-2">
-                                <input asp-for="IsPaid" class="form-check-input" />
-                                <label asp-for="IsPaid" class="form-check-label">Mark as Paid</label>
-                            </div>
-                        </div>
-
+                        }
+                        
                         <div class="col-12">
                             <div class="form-check">
                                 <input asp-for="UseDifferentShippingAddress" class="form-check-input" id="useDiffShipping" />
@@ -77,20 +69,79 @@
                             <textarea asp-for="ShippingAddress" class="form-control" rows="3"></textarea>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- Read-Only Items Table -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Invoiced Items (Read Only)</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-bordered mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Description</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Unit Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td>@item.ItemDescription</td> <!-- Utilized mapped property -->
+                                        <td class="text-center">@item.ThisInvoiceQuantity</td>
+                                        <td class="text-end">@item.UnitPrice.ToString("C2")</td>
+                                        <td class="text-end">@item.LineAmount.ToString("C2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                     <div class="p-3 bg-light text-muted small">
+                        <i class="fas fa-info-circle me-1"></i> To modify items/quantities, please delete this invoice and create a new one.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                     <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Sub Total:</span>
+                        <span class="fw-bold">@Model.TotalAmount.ToString("C2")</span>
+                         <input type="hidden" asp-for="TotalAmount" />
+                    </div>
                     
-                    <hr class="my-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                         <span>Tax (@((Model.CgstPercent + Model.SgstPercent + Model.IgstPercent))%):</span>
+                         <span>@Model.TaxAmount.ToString("C2")</span>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                        <span class="h5 mb-0">Grand Total:</span>
+                        <span class="h4 mb-0 text-success">@Model.GrandTotal.ToString("C2")</span>
+                    </div>
                     
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-success px-4">
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success w-100 mb-2">
                             <i class="fas fa-save me-2"></i>Update Invoice
                         </button>
-                        <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">Cancel</a>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
-</div>
+</form>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -99,10 +150,6 @@
             $('#useDiffShipping').on('change', function() {
                 $('#shippingDiv').toggle($(this).is(':checked'));
             });
-
-            if ($('.field-validation-error').length > 0) {
-                $('.alert-danger').show();
-            }
         });
     </script>
 }

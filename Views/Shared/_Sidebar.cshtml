@@ -76,28 +76,11 @@
                 @if (isAdmin)
                 {
                     <!-- Reports (Admin Only) -->
-                    <li class="nav-item @(currentController == "Reports" ? "menu-open" : "")">
-                        <a href="#" class="nav-link @(currentController == "Reports" ? "active" : "")">
-                            <i class="nav-icon fas fa-chart-bar"></i>
-                            <p>
-                                Reports
-                                <i class="nav-arrow fas fa-angle-left"></i>
-                            </p>
+                    <li class="nav-item">
+                        <a href="@Url.Action("SalesReport", "Reports")" class="nav-link @(currentAction == "SalesReport" && currentController == "Reports" ? "active" : "")">
+                            <i class="nav-icon fas fa-file-invoice-dollar"></i>
+                            <p>Sales Report</p>
                         </a>
-                        <ul class="nav nav-treeview">
-                            <li class="nav-item">
-                                <a href="@Url.Action("Index", "Reports")" class="nav-link @(currentAction == "Index" && currentController == "Reports" ? "active" : "")">
-                                    <i class="nav-icon fas fa-circle nav-icon-bullet"></i>
-                                    <p>PO Summary</p>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="@Url.Action("PendingQuantity", "Reports")" class="nav-link @(currentAction == "PendingQuantity" ? "active" : "")">
-                                    <i class="nav-icon fas fa-circle nav-icon-bullet"></i>
-                                    <p>Pending Quantity</p>
-                                </a>
-                            </li>
-                        </ul>
                     </li>
                 }
 

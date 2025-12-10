@@ -57,7 +57,7 @@
 
                         <div class="col-md-6">
                             <label asp-for="InvoiceNumber" class="form-label fw-semibold">Invoice Number *</label>
-                            <input asp-for="InvoiceNumber" class="form-control" placeholder="e.g., INV-2024-001" />
+                            <input asp-for="InvoiceNumber" class="form-control" readonly style="background-color: #f8f9fa;" />
                             <span asp-validation-for="InvoiceNumber" class="text-danger"></span>
                         </div>
                         
@@ -81,12 +81,15 @@
                             <textarea asp-for="ShippingAddress" class="form-control" rows="3" placeholder="Enter shipping address..."></textarea>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input asp-for="IsPaid" class="form-check-input" />
-                                <label asp-for="IsPaid" class="form-check-label">Mark as Paid</label>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input asp-for="IsPaid" class="form-check-input" />
+                                    <label asp-for="IsPaid" class="form-check-label">Mark as Paid</label>
+                                </div>
                             </div>
-                        </div>
+                        }
                     </div>
                 </div>
             </div>

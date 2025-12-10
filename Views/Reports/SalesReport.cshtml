@@ -9,53 +9,87 @@
 </div>
 
 <div class="table-responsive">
-    <table class="table table-bordered table-sm text-center" id="salesTable" style="font-size: 12px;">
-        <thead class="table-light">
+    <table class="table table-bordered table-sm text-center" id="salesTable" style="font-size: 11px; border-color: #000;">
+        <thead style="background-color: #f0f0f0;">
             <tr>
-                <th>Slno</th>
-                <th>Invoice no</th>
-                <th>Invoice Date</th>
-                <th>customer name</th>
-                <th>state</th>
-                <th>customer Gst no</th>
-                <th>Project name</th>
-                <th>Po No</th>
-                <th>Hsncode</th>
-                <th>Qty</th>
-                <th>Pending Quandi</th>
-                <th>Amount</th>
-                <th>Cgst</th>
-                <th>Sgst</th>
-                <th>Igst</th>
-                <th>Round Off</th>
-                <th>Total Am</th>
-                <th>Gst status</th>
-                <th>pagment satus</th>
+                <th style="border: 1px solid #000;">Slno</th>
+                <th style="border: 1px solid #000;">Invoice no</th>
+                <th style="border: 1px solid #000;">Invoice Date</th>
+                <th style="border: 1px solid #000; width: 15%;">customer name</th>
+                <th style="border: 1px solid #000;">state</th>
+                <th style="border: 1px solid #000;">customer Gst no</th>
+                <th style="border: 1px solid #000;">Project name</th>
+                <th style="border: 1px solid #000;">Po No</th>
+                <th style="border: 1px solid #000;">Hsncode</th>
+                <th style="border: 1px solid #000;">Qty</th>
+                <th style="border: 1px solid #000;">Pending Quandi</th>
+                <th style="border: 1px solid #000;">Amount</th>
+                <th style="border: 1px solid #000;">Cgst</th>
+                <th style="border: 1px solid #000;">Sgst</th>
+                <th style="border: 1px solid #000;">Igst</th>
+                <th style="border: 1px solid #000;">Round Off</th>
+                <th style="border: 1px solid #000;">Total Am</th>
+                <th style="border: 1px solid #000;">Gst status</th>
+                @if (User.IsInRole("Admin"))
+                {
+                    <th style="border: 1px solid #000;">pagment satus</th>
+                }
             </tr>
         </thead>
         <tbody>
             @foreach(var item in Model)
             {
-                <tr>
-                    <td>@item.SlNo</td>
-                    <td>@item.InvoiceNo</td>
-                    <td>@item.InvoiceDate.ToString("dd-MM-yyyy")</td>
-                    <td>@item.CustomerName</td>
-                    <td>@item.State</td>
-                    <td>@item.CustomerGstNo</td>
-                    <td>@item.ProjectName</td>
-                    <td>@item.PoNo</td>
-                    <td>@item.HsnCode</td>
-                    <td>@item.Qty</td>
-                    <td>0</td> <!-- Pending placeholder -->
-                    <td>@item.Amount.ToString("0.00")</td>
-                    <td>@item.Cgst.ToString("0.00")</td>
-                    <td>@item.Sgst.ToString("0.00")</td>
-                    <td>@item.Igst.ToString("0.00")</td>
-                    <td>0.00</td>
-                    <td>@item.TotalAmount.ToString("0.00")</td>
-                    <td>Approve</td>
-                    <td>pending</td>
+                // Determine row/cell styles based on logical mapping to screenshot
+                // Screen shows: 
+                // - Red row for Cancelled/Missing (using 'cancel' status logic)
+                // - Green cell for 'received' payment
+                // - Default white/transparent for others
+                
+                string rowClass = "";
+                string paymentClass = "";
+                
+                // Logic: If Invoice isn't paid, 'pending'. If Paid, 'received'.
+                // If Item is Deleted/Cancelled, row is Red. (Assuming we have IsDeleted check or status)
+                // Since we don't have explicit 'Status' in ViewModel yet other than placeholders,
+                // I'll simulate: 'red' if Qty is 0 (maybe cancelled?) or based on a new property if I added it.
+                // For now, I'll stick to 'pending' logic from VM.
+                
+                // Assuming 'IsPaid' status comes from VM if mapped. 
+                // Let's assume PaymentStatus string is populated relative to IsPaid.
+                
+                if (item.PaymentStatus?.ToLower() == "cancel") 
+                {
+                    rowClass = "bg-danger text-white"; 
+                }
+                
+                if (item.PaymentStatus?.ToLower() == "received" || item.PaymentStatus?.ToLower() == "paid")
+                {
+                    paymentClass = "bg-success text-white";
+                }
+
+                <tr class="@rowClass">
+                    <td style="border: 1px solid #000;">@item.SlNo</td>
+                    <td style="border: 1px solid #000;">@item.InvoiceNo</td>
+                    <td style="border: 1px solid #000;">@item.InvoiceDate.ToString("dd-MM-yyyy")</td>
+                    <td style="border: 1px solid #000; text-align: left;">@item.CustomerName</td>
+                    <td style="border: 1px solid #000;">@item.State</td>
+                    <td style="border: 1px solid #000;">@item.CustomerGstNo</td>
+                    <td style="border: 1px solid #000;">@item.ProjectName</td>
+                    <td style="border: 1px solid #000;">@item.PoNo</td>
+                    <td style="border: 1px solid #000;">@item.HsnCode</td>
+                    <td style="border: 1px solid #000;">@item.Qty</td>
+                    <td style="border: 1px solid #000;">@item.PendingQty</td>
+                    <td style="border: 1px solid #000;">@item.Amount.ToString("0.00")</td>
+                    <td style="border: 1px solid #000;">@item.Cgst.ToString("0.00")</td>
+                    <td style="border: 1px solid #000;">@item.Sgst.ToString("0.00")</td>
+                    <td style="border: 1px solid #000;">@item.Igst.ToString("0.00")</td>
+                    <td style="border: 1px solid #000;">@item.RoundOff.ToString("0.00")</td>
+                    <td style="border: 1px solid #000;">@item.TotalAmount.ToString("0.00")</td>
+                    <td style="border: 1px solid #000;">@item.GstStatus</td> 
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <td style="border: 1px solid #000;" class="@paymentClass">@item.PaymentStatus</td>
+                    }
                 </tr>
             }
         </tbody>

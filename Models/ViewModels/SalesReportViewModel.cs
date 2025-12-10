@@ -21,5 +21,6 @@ namespace HRPackage.Models.ViewModels
         public decimal TotalAmount { get; set; }
         public string GstStatus { get; set; } = "Approve";
         public string PaymentStatus { get; set; } = "Pending";
+        public bool IsPaid { get; set; }
     }
 }

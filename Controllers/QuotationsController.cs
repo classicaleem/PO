@@ -13,11 +13,19 @@ namespace HRPackage.Controllers
     {
         private readonly IQuotationsRepository _quotationsRepository;
         private readonly ICustomersRepository _customersRepository;
+        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
-        public QuotationsController(IQuotationsRepository quotationsRepository, ICustomersRepository customersRepository)
+        public QuotationsController(
+            IQuotationsRepository quotationsRepository, 
+            ICustomersRepository customersRepository,
+            HRPackage.Services.IPdfService pdfService,
+            Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _quotationsRepository = quotationsRepository;
             _customersRepository = customersRepository;
+            _pdfService = pdfService;
+            _companySettings = companySettings;
         }
 
         public async Task<IActionResult> Index()
@@ -81,20 +89,11 @@ namespace HRPackage.Controllers
             var q = await _quotationsRepository.GetByIdAsync(id);
             if (q == null) return NotFound();
 
-            return new Rotativa.AspNetCore.ViewAsPdf("Print", q)
-            {
-                FileName = $"Quotation_{q.QuotationNo}.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
-            };
+            var pdfBytes = _pdfService.GenerateQuotationPdf(q, _companySettings.Value);
+            return File(pdfBytes, "application/pdf", $"Quotation_{q.QuotationNo}.pdf");
         }
 
-        public async Task<IActionResult> Print(int id)
-        {
-            var q = await _quotationsRepository.GetByIdAsync(id);
-            if (q == null) return NotFound();
-            return View(q);
-        }
+
 
         public async Task<IActionResult> Delete(int id)
         {

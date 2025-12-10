@@ -8,7 +8,7 @@ namespace HRPackage.Repositories
     public interface IReportRepository
     {
         Task<(int TotalOrders, int CompletedOrders, decimal TotalRevenue, int PendingOrders)> GetDashboardStatsAsync();
-         Task<IEnumerable<PurchaseOrderViewModel>> GetPendingQuantityReportAsync();
+         Task<PendingQuantityReportViewModel> GetPendingQuantityReportAsync();
          Task<IEnumerable<PurchaseOrderViewModel>> GetPoSummaryReportAsync();
          Task<IEnumerable<SalesReportViewModel>> GetSalesReportAsync();
     }
@@ -33,44 +33,76 @@ namespace HRPackage.Repositories
                          FROM PurchaseOrders
                          WHERE IsDeleted = 0";
              var result = await connection.QuerySingleAsync<dynamic>(sql);
-             return ((int)result.TotalOrders, (int)result.CompletedOrders, (decimal)result.TotalRevenue, (int)result.PendingOrders);
+             // Handle nulls in dynamic result safely
+             int total = result.TotalOrders != null ? (int)result.TotalOrders : 0;
+             int completed = result.CompletedOrders != null ? (int)result.CompletedOrders : 0;
+             decimal revenue = result.TotalRevenue != null ? (decimal)result.TotalRevenue : 0;
+             int pending = result.PendingOrders != null ? (int)result.PendingOrders : 0;
+             
+             return (total, completed, revenue, pending);
         }
 
-        public async Task<IEnumerable<PurchaseOrderViewModel>> GetPendingQuantityReportAsync()
+        public async Task<PendingQuantityReportViewModel> GetPendingQuantityReportAsync()
         {
-            // Existing implementation... placeholder for brevity if not requested to change
-            // But since I'm overwriting the file, I must provide full content or use replace.
-            // I will use FULL implementation for safety designated in previous turns.
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT p.PoNumber, p.PoDate, c.CustomerName, 
-                               poi.ItemDescription, poi.Quantity as OrderedQuantity,
-                               ISNULL(SUM(ii.Quantity), 0) as InvoicedQuantity,
-                               (poi.Quantity - ISNULL(SUM(ii.Quantity), 0)) as PendingQuantity
-                        FROM PurchaseOrderItems poi
-                        JOIN PurchaseOrders p ON poi.PoId = p.PoId
+            var sql = @"SELECT 
+                            p.PoId, p.InternalPoCode, p.PoNumber, p.PoDate, c.CustomerName,
+                            poi.PoItemId, poi.LineNumber, poi.ItemDescription, poi.Quantity as OrderedQty,
+                            ISNULL(SUM(ii.Quantity), 0) as InvoicedQty,
+                            CASE WHEN (poi.Quantity - ISNULL(SUM(ii.Quantity), 0)) > 0 THEN 1 ELSE 0 END as HasPending
+                        FROM PurchaseOrders p
+                        INNER JOIN PurchaseOrderItems poi ON p.PoId = poi.PoId
                         LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
                         LEFT JOIN InvoiceItems ii ON poi.PoItemId = ii.PoItemId
                         LEFT JOIN Invoices i ON ii.InvoiceId = i.InvoiceId AND i.IsDeleted = 0
                         WHERE p.IsDeleted = 0 AND poi.IsDeleted = 0
-                        GROUP BY p.PoNumber, p.PoDate, c.CustomerName, poi.ItemDescription, poi.Quantity
-                        HAVING (poi.Quantity - ISNULL(SUM(ii.Quantity), 0)) > 0
-                        ORDER BY p.PoDate";
+                        GROUP BY p.PoId, p.InternalPoCode, p.PoNumber, p.PoDate, c.CustomerName,
+                                 poi.PoItemId, poi.LineNumber, poi.ItemDescription, poi.Quantity
+                        ORDER BY p.PoDate DESC, p.PoId, poi.LineNumber";
              
-             // Mapping to PO VM mostly for display
-             var result = await connection.QueryAsync<dynamic>(sql);
-             return result.Select(r => new PurchaseOrderViewModel {
-                 PoNumber = r.PoNumber,
-                 CustomerName = r.CustomerName,
-                 PoDate = r.PoDate,
-                 Items = new List<PurchaseOrderItemViewModel> {
-                     new PurchaseOrderItemViewModel {
-                         ItemDescription = r.ItemDescription,
-                         Quantity = (int)r.OrderedQuantity,
-                         PendingQuantity = (int)r.PendingQuantity
-                         // Invoiced Qty not in VM but calc
-                     }
+             var rawData = await connection.QueryAsync<dynamic>(sql);
+
+             var viewModel = new PendingQuantityReportViewModel();
+             
+             // Group by PO
+             var grouped = rawData.GroupBy(r => (int)r.PoId);
+
+             foreach (var group in grouped)
+             {
+                 var first = group.First();
+                 var summary = new PendingQuantityPoSummary
+                 {
+                     PoId = first.PoId,
+                     InternalPoCode = first.InternalPoCode,
+                     PoNumber = first.PoNumber,
+                     PoDate = first.PoDate,
+                     CustomerName = first.CustomerName,
+                     ItemDetails = new List<PendingQuantityItemDetail>()
+                 };
+
+                 foreach (var item in group)
+                 {
+                     summary.ItemDetails.Add(new PendingQuantityItemDetail
+                     {
+                         PoItemId = item.PoItemId,
+                         LineNumber = item.LineNumber,
+                         ItemDescription = item.ItemDescription,
+                         OrderedQuantity = (int)item.OrderedQty,
+                         InvoicedQuantity = (int)item.InvoicedQty
+                     });
                  }
-             });
+
+                 // Calculate aggregations
+                 summary.TotalOrderedQuantity = summary.ItemDetails.Sum(i => i.OrderedQuantity);
+                 summary.TotalInvoicedQuantity = summary.ItemDetails.Sum(i => i.InvoicedQuantity);
+
+                 // Only add if there is any pending OR if we want to show all. 
+                 // Usually pending report shows items with Issues. 
+                 // But let's show all for completeness as per view logic which filters/highlights
+                 viewModel.PoSummaries.Add(summary);
+             }
+
+             return viewModel;
         }
 
         public async Task<IEnumerable<PurchaseOrderViewModel>> GetPoSummaryReportAsync()
@@ -88,40 +120,87 @@ namespace HRPackage.Repositories
         public async Task<IEnumerable<SalesReportViewModel>> GetSalesReportAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            // Complex join for Sales Report
-            // Invoices -> InvoiceItems -> PO Items (for description/qty) -> PO (for internal code) -> Customer
-            // Note: Invoice amount is total, but items have individual amounts. Report seems to list Invoices.
-            // If multiple items, we might sum or list 1st.
-            // The image shows 1 row per Invoice usually, but Qty is there.
-            // Let's assume 1 row per Invoice for simplicity or group.
             
-            var sql = @"SELECT 
-                            i.InvoiceNumber as InvoiceNo, 
-                            i.InvoiceDate, 
-                            c.CustomerName,
-                            c.State,
-                            c.GstNumber as CustomerGstNo,
-                            p.InternalPoCode as ProjectName,
-                            p.PoNumber as PoNo,
-                            SUM(it.Quantity) as Qty,
-                            i.TotalAmount as Amount,
-                            (i.TotalAmount * i.CgstPercent / 100) as Cgst,
-                            (i.TotalAmount * i.SgstPercent / 100) as Sgst,
-                            (i.TotalAmount * i.IgstPercent / 100) as Igst,
-                            i.GrandTotal as TotalAmount
-                        FROM Invoices i
-                        LEFT JOIN PurchaseOrders p ON i.PoId = p.PoId
-                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
-                        LEFT JOIN InvoiceItems it ON i.InvoiceId = it.InvoiceId
-                        WHERE i.IsDeleted = 0
-                        GROUP BY i.InvoiceNumber, i.InvoiceDate, c.CustomerName, c.State, c.GstNumber, 
-                                 p.InternalPoCode, p.PoNumber, i.TotalAmount, i.CgstPercent, i.SgstPercent, i.IgstPercent, i.GrandTotal
-                        ORDER BY i.InvoiceDate DESC";
+            var sql = @"
+            ;WITH PoStats AS (
+                SELECT 
+                    p.PoId,
+                    (SELECT ISNULL(SUM(Quantity), 0) FROM PurchaseOrderItems WHERE PoId = p.PoId AND IsDeleted = 0) -
+                    (SELECT ISNULL(SUM(ii.Quantity), 0) FROM InvoiceItems ii 
+                     JOIN Invoices inv ON ii.InvoiceId = inv.InvoiceId 
+                     WHERE inv.PoId = p.PoId AND inv.IsDeleted = 0) as PendingQty
+                FROM PurchaseOrders p
+                WHERE p.IsDeleted = 0
+            )
+            SELECT 
+                i.InvoiceNumber as InvoiceNo, 
+                i.InvoiceDate, 
+                c.CustomerName,
+                c.State,
+                c.GstNumber as CustomerGstNo,
+                p.InternalPoCode as ProjectName,
+                p.PoNumber as PoNo,
+                ISNULL(SUM(it.Quantity), 0) as Qty,
+                ISNULL(i.TotalAmount, 0) as Amount,
+                ISNULL((i.TotalAmount * i.CgstPercent / 100), 0) as Cgst,
+                ISNULL((i.TotalAmount * i.SgstPercent / 100), 0) as Sgst,
+                ISNULL((i.TotalAmount * i.IgstPercent / 100), 0) as Igst,
+                ISNULL(i.GrandTotal, 0) as TotalAmount,
+                ISNULL(i.TaxAmount, 0) as TaxAmount,
+                i.IsPaid,
+                i.IsDeleted,
+                p.PoId,
+                ISNULL(stats.PendingQty, 0) as PendingQty
+            FROM Invoices i
+            LEFT JOIN PurchaseOrders p ON i.PoId = p.PoId
+            LEFT JOIN PoStats stats ON p.PoId = stats.PoId
+            LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+            LEFT JOIN InvoiceItems it ON i.InvoiceId = it.InvoiceId
+            GROUP BY i.InvoiceNumber, i.InvoiceDate, c.CustomerName, c.State, c.GstNumber, 
+                     p.InternalPoCode, p.PoNumber, i.TotalAmount, i.CgstPercent, i.SgstPercent, i.IgstPercent, 
+                     i.GrandTotal, i.TaxAmount, i.IsPaid, i.IsDeleted, p.PoId, stats.PendingQty
+            ORDER BY i.InvoiceDate DESC";
             
-            var data = await connection.QueryAsync<SalesReportViewModel>(sql);
-            int sl = 1;
-            foreach(var d in data) { d.SlNo = sl++; }
-            return data;
+            var result = await connection.QueryAsync<dynamic>(sql);
+
+            return result.Select(d => 
+            {
+                decimal amount = d.Amount != null ? (decimal)d.Amount : 0;
+                decimal grandTotal = d.TotalAmount != null ? (decimal)d.TotalAmount : 0;
+                
+                // Safety fix for null tax components
+                decimal cgst = d.Cgst != null ? (decimal)d.Cgst : 0;
+                decimal sgst = d.Sgst != null ? (decimal)d.Sgst : 0;
+                decimal igst = d.Igst != null ? (decimal)d.Igst : 0;
+                
+                decimal tax = d.TaxAmount != null ? (decimal)d.TaxAmount : (cgst + sgst + igst);
+                var roundOff = grandTotal - (amount + tax);
+
+                int pending = d.PendingQty != null ? (int)d.PendingQty : 0;
+
+                return new SalesReportViewModel 
+                {
+                    SlNo = 0, // Assigned later
+                    InvoiceNo = d.InvoiceNo,
+                    InvoiceDate = d.InvoiceDate,
+                    CustomerName = d.CustomerName,
+                    State = d.State,
+                    CustomerGstNo = d.CustomerGstNo,
+                    ProjectName = d.ProjectName,
+                    PoNo = d.PoNo,
+                    Qty = d.Qty != null ? (int)d.Qty : 0,
+                    Amount = amount,
+                    Cgst = cgst,
+                    Sgst = sgst,
+                    Igst = igst,
+                    RoundOff = roundOff,
+                    TotalAmount = grandTotal,
+                    PendingQty = pending < 0 ? 0 : pending,
+                    IsPaid = d.IsPaid,
+                    PaymentStatus = d.IsDeleted ? "cancel" : (d.IsPaid ? "received" : "pending"),
+                    GstStatus = d.IsDeleted ? "cancel" : "Approve"
+                };
+            }).Select((x, index) => { x.SlNo = index + 1; return x; }).ToList();
         }
     }
 }

@@ -12,6 +12,7 @@ namespace HRPackage.Models
         public decimal SgstPercent { get; set; }
         public decimal IgstPercent { get; set; }
         public decimal TaxAmount { get; set; }
+        public decimal RoundOff { get; set; }
         public decimal GrandTotal { get; set; }
         public DateTime? PoDate { get; set; }
         public DateTime? StartDate { get; set; }

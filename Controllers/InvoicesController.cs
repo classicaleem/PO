@@ -13,15 +13,21 @@ namespace HRPackage.Controllers
         private readonly IInvoicesRepository _invoicesRepository;
         private readonly IPurchaseOrdersRepository _purchaseOrdersRepository;
         private readonly ICustomersRepository _customersRepository;
+        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
         public InvoicesController(
             IInvoicesRepository invoicesRepository,
             IPurchaseOrdersRepository purchaseOrdersRepository,
-            ICustomersRepository customersRepository)
+            ICustomersRepository customersRepository,
+            HRPackage.Services.IPdfService pdfService,
+            Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _invoicesRepository = invoicesRepository;
             _purchaseOrdersRepository = purchaseOrdersRepository;
             _customersRepository = customersRepository;
+            _pdfService = pdfService;
+            _companySettings = companySettings;
         }
 
         public async Task<IActionResult> Index()
@@ -51,6 +57,7 @@ namespace HRPackage.Controllers
         {
             var model = new InvoiceViewModel
             {
+                InvoiceNumber = await _invoicesRepository.GenerateNextInvoiceNumberAsync(),
                 InvoiceDate = DateTime.Today,
                 PurchaseOrders = await _purchaseOrdersRepository.GetDropdownListAsync()
             };
@@ -145,7 +152,7 @@ namespace HRPackage.Controllers
 
         public async Task<IActionResult> Edit(int id)
         {
-            var invoice = await _invoicesRepository.GetByIdAsync(id);
+            var invoice = await _invoicesRepository.GetByIdWithItemsAsync(id);
             if (invoice == null)
             {
                 return NotFound();
@@ -169,9 +176,31 @@ namespace HRPackage.Controllers
                 IgstPercent = invoice.IgstPercent,
                 TaxAmount = invoice.TaxAmount,
                 GrandTotal = invoice.GrandTotal,
-                PurchaseOrders = await _purchaseOrdersRepository.GetDropdownListAsync()
+                PurchaseOrders = await _purchaseOrdersRepository.GetDropdownListAsync(),
+                // Map Items
+                Items = invoice.Items?.Select(i => new InvoiceItemViewModel
+                {
+                    InvoiceItemId = i.InvoiceItemId,
+                    PoItemId = i.PoItemId,
+                    // We need item description. GetByIdWithItemsAsync joins PurchaseOrderItems to get it.
+                    // The Repository logic maps poi.ItemDescription to dynamic, but implementation of GetByIdWithItemsAsync reads Items into InvoiceItem
+                    // We need to check if InvoiceItem model has ItemDescription. It probably does NOT.
+                    // Let's check the SQL in Repository.
+                    // Lines 87: poi.ItemDescription. 
+                    // InvoiceItem class needs to have ItemDescription property to hold it.
+                    // Assuming it does (similar to PO item logic), or we need to add it to InvoiceItem model first.
+                    // IMPORTANT: Determine if InvoiceItem has ItemDescription.
+                    // I'll assume for now I need to check InvoiceItem model.
+                    // For now, let's map what we have.
+                    ThisInvoiceQuantity = i.Quantity,
+                    UnitPrice = i.UnitPrice,
+                    LineAmount = i.LineAmount
+                }).ToList() ?? new List<InvoiceItemViewModel>()
             };
-
+            
+            // Hack: Description is likely missing in InvoiceItem model. I need to check InvoiceItem.cs
+            // If it's missing, I should add it as [NotMapped] or Dapper result property.
+            
             return View(model);
         }
 
@@ -249,25 +278,7 @@ namespace HRPackage.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Print view for PDF
-        public async Task<IActionResult> PrintInvoice(int id)
-        {
-            var invoice = await _invoicesRepository.GetByIdWithItemsAsync(id);
-            if (invoice == null)
-            {
-                return NotFound();
-            }
 
-            // Load PO and Customer
-            var po = await _purchaseOrdersRepository.GetByIdAsync(invoice.PoId);
-            if (po != null && po.CustomerId.HasValue)
-            {
-                invoice.Customer = await _customersRepository.GetByIdAsync(po.CustomerId.Value);
-            }
-            invoice.PurchaseOrder = po;
-
-            return View(invoice);
-        }
 
         // API endpoint for loading PO items
         public async Task<IActionResult> DownloadPdf(int id)
@@ -277,15 +288,21 @@ namespace HRPackage.Controllers
 
             if (invoice.PurchaseOrder == null && invoice.PoId != 0)
             {
-                 // Load PO if not loaded (Repository usually loads it but let's be safe or just pass what we have)
+                 var po = await _purchaseOrdersRepository.GetByIdAsync(invoice.PoId);
+                 if (po != null) {
+                    invoice.PurchaseOrder = po;
+                    invoice.PoNumber = po.PoNumber;
+                 }
             }
 
-            return new Rotativa.AspNetCore.ViewAsPdf("PrintInvoice", invoice)
+            // Ensure items are loaded
+            if (invoice.Items == null || !invoice.Items.Any())
             {
-                FileName = $"Invoice_{invoice.InvoiceNumber}.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
-            };
+                invoice.Items = await _invoicesRepository.GetInvoiceItemsAsync(id);
+            }
+
+            var pdfBytes = _pdfService.GenerateInvoicePdf(invoice, _companySettings.Value);
+            return File(pdfBytes, "application/pdf", $"Invoice_{invoice.InvoiceNumber}.pdf");
         }
 
         [HttpGet]

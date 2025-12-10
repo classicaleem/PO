@@ -13,11 +13,19 @@ namespace HRPackage.Controllers
     {
         private readonly IDeliveryChallansRepository _dcRepository;
         private readonly ICustomersRepository _customersRepository;
+        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
-        public DeliveryChallansController(IDeliveryChallansRepository dcRepository, ICustomersRepository customersRepository)
+        public DeliveryChallansController(
+            IDeliveryChallansRepository dcRepository, 
+            ICustomersRepository customersRepository,
+            HRPackage.Services.IPdfService pdfService,
+            Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _dcRepository = dcRepository;
             _customersRepository = customersRepository;
+            _pdfService = pdfService;
+            _companySettings = companySettings;
         }
 
         public async Task<IActionResult> Index()
@@ -84,20 +92,11 @@ namespace HRPackage.Controllers
             var dc = await _dcRepository.GetByIdAsync(id);
             if (dc == null) return NotFound();
 
-            return new Rotativa.AspNetCore.ViewAsPdf("Print", dc)
-            {
-                FileName = $"DC_{dc.DcNumber.Replace("/", "_")}.pdf",
-                PageSize = Rotativa.AspNetCore.Options.Size.A4,
-                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
-            };
+            var pdfBytes = _pdfService.GenerateDeliveryChallanPdf(dc, _companySettings.Value);
+            return File(pdfBytes, "application/pdf", $"DC_{dc.DcNumber.Replace("/", "_")}.pdf");
         }
 
-        public async Task<IActionResult> Print(int id)
-        {
-            var dc = await _dcRepository.GetByIdAsync(id);
-            if (dc == null) return NotFound();
-            return View(dc);
-        }
+
         
         public async Task<IActionResult> Delete(int id)
         {

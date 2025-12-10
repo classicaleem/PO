@@ -11,6 +11,7 @@ namespace HRPackage.Models
 
         // Navigation/display properties from PO Item
         public string? ItemDescription { get; set; }
+        public string? HsnCode { get; set; } // Added back for Invoice Layout
         public int OrderedQuantity { get; set; }
         public int PreviouslyInvoiced { get; set; }
         public int PendingQuantity { get; set; }

@@ -14,10 +14,7 @@ namespace HRPackage.Controllers
             _reportRepository = reportRepository;
         }
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+
 
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> SalesReport()
@@ -26,16 +23,6 @@ namespace HRPackage.Controllers
             return View(data);
         }
 
-        public async Task<IActionResult> PendingQuantity()
-        {
-            var data = await _reportRepository.GetPendingQuantityReportAsync();
-            return View(data);
-        }
 
-        public async Task<IActionResult> PoSummary()
-        {
-            var data = await _reportRepository.GetPoSummaryReportAsync();
-            return View(data);
-        }
     }
 }
