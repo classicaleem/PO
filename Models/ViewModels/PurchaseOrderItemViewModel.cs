@@ -28,6 +28,7 @@ namespace HRPackage.Models.ViewModels
         [Display(Name = "Line Total")]
         public decimal LineTotal { get; set; }
 
+        public int PendingQuantity { get; set; }
         public bool IsDeleted { get; set; }
     }
 }

@@ -24,6 +24,11 @@ namespace HRPackage.Models.ViewModels
         [Display(Name = "Total Amount")]
         [DataType(DataType.Currency)]
         public decimal TotalAmount { get; set; }
+        public decimal CgstPercent { get; set; }
+        public decimal SgstPercent { get; set; }
+        public decimal IgstPercent { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal GrandTotal { get; set; }
 
         [Display(Name = "Paid")]
         public bool IsPaid { get; set; }

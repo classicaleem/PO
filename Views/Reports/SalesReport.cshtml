@@ -1,0 +1,89 @@
+@model IEnumerable<HRPackage.Models.ViewModels.SalesReportViewModel>
+@{
+    ViewData["Title"] = "Sim Sales Report";
+}
+
+<div class="d-flex justify-content-between mb-3">
+    <h3>Sim Sales Report</h3>
+    <button onclick="exportTableToExcel('salesTable', 'Sim_Sales_Report')" class="btn btn-success"><i class="fas fa-file-excel"></i> Export to Excel</button>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-sm text-center" id="salesTable" style="font-size: 12px;">
+        <thead class="table-light">
+            <tr>
+                <th>Slno</th>
+                <th>Invoice no</th>
+                <th>Invoice Date</th>
+                <th>customer name</th>
+                <th>state</th>
+                <th>customer Gst no</th>
+                <th>Project name</th>
+                <th>Po No</th>
+                <th>Hsncode</th>
+                <th>Qty</th>
+                <th>Pending Quandi</th>
+                <th>Amount</th>
+                <th>Cgst</th>
+                <th>Sgst</th>
+                <th>Igst</th>
+                <th>Round Off</th>
+                <th>Total Am</th>
+                <th>Gst status</th>
+                <th>pagment satus</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model)
+            {
+                <tr>
+                    <td>@item.SlNo</td>
+                    <td>@item.InvoiceNo</td>
+                    <td>@item.InvoiceDate.ToString("dd-MM-yyyy")</td>
+                    <td>@item.CustomerName</td>
+                    <td>@item.State</td>
+                    <td>@item.CustomerGstNo</td>
+                    <td>@item.ProjectName</td>
+                    <td>@item.PoNo</td>
+                    <td>@item.HsnCode</td>
+                    <td>@item.Qty</td>
+                    <td>0</td> <!-- Pending placeholder -->
+                    <td>@item.Amount.ToString("0.00")</td>
+                    <td>@item.Cgst.ToString("0.00")</td>
+                    <td>@item.Sgst.ToString("0.00")</td>
+                    <td>@item.Igst.ToString("0.00")</td>
+                    <td>0.00</td>
+                    <td>@item.TotalAmount.ToString("0.00")</td>
+                    <td>Approve</td>
+                    <td>pending</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+function exportTableToExcel(tableID, filename = ''){
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+    
+    filename = filename? filename + '.xls' : 'excel_data.xls';
+    
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+        downloadLink.download = filename;
+        downloadLink.click();
+    }
+}
+</script>

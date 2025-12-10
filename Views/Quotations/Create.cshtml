@@ -1,0 +1,124 @@
+@model HRPackage.Models.ViewModels.QuotationViewModel
+@{
+    ViewData["Title"] = "Create Quotation";
+}
+
+<div class="page-header">
+    <h1>Create Quotation</h1>
+</div>
+
+<form asp-action="Create" method="post">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    
+    <div class="card mb-3">
+        <div class="card-header">Quotation Info</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="QuotationNo" class="form-label">Quotation No *</label>
+                    <input asp-for="QuotationNo" class="form-control" />
+                    <span asp-validation-for="QuotationNo" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="Date" class="form-label">Date *</label>
+                    <input asp-for="Date" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="ValidUntil" class="form-label">Valid Until</label>
+                    <input asp-for="ValidUntil" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CustomerId" class="form-label">Customer *</label>
+                    <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select select2">
+                         <option value="">-- Select Customer --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between">
+            <span>Items</span>
+            <button type="button" class="btn btn-sm btn-primary" id="addBtn">Add Item</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th width="50%">Description</th>
+                        <th width="15%">Unit Price</th>
+                        <th width="15%">Quantity</th>
+                        <th width="15%">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    @for(int i=0; i< Model.Items.Count; i++)
+                    {
+                        <tr class="item-row">
+                            <td><input name="Items[@i].Description" value="@Model.Items[i].Description" class="form-control" placeholder="Desc" /></td>
+                            <td><input name="Items[@i].UnitPrice" value="@Model.Items[i].UnitPrice" type="number" step="0.01" class="form-control price" /></td>
+                            <td><input name="Items[@i].Quantity" value="@Model.Items[i].Quantity" type="number" class="form-control qty" /></td>
+                            <td><input readonly class="form-control total" /></td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-btn">X</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-success">Save Quotation</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+             $('.select2').select2({ theme: 'bootstrap-5' });
+             
+             function calcTotal(row) {
+                 var p = parseFloat(row.find('.price').val()) || 0;
+                 var q = parseFloat(row.find('.qty').val()) || 0;
+                 row.find('.total').val((p*q).toFixed(2));
+             }
+
+             $(document).on('input', '.price, .qty', function() {
+                 calcTotal($(this).closest('tr'));
+             });
+
+             $('#addBtn').click(function() {
+                 var idx = $('.item-row').length;
+                 var row = `
+                    <tr class="item-row">
+                        <td><input name="Items[${idx}].Description" class="form-control" placeholder="Desc" /></td>
+                        <td><input name="Items[${idx}].UnitPrice" type="number" step="0.01" class="form-control price" value="0" /></td>
+                        <td><input name="Items[${idx}].Quantity" type="number" class="form-control qty" value="1" /></td>
+                        <td><input readonly class="form-control total" value="0.00" /></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-btn">X</button></td>
+                    </tr>
+                 `;
+                 $('#itemsBody').append(row);
+             });
+
+             $(document).on('click', '.remove-btn', function() {
+                 if ($('.item-row').length > 1) {
+                    $(this).closest('tr').remove();
+                    // Re-index logic if strictly needed by binder, usually binder handles gaps if index is correct but safe to re-index
+                    $('.item-row').each(function(i) {
+                         $(this).find('input').each(function() {
+                             var name = $(this).attr('name');
+                             // Simple regex replace for digit in brackets
+                             var newName = name.replace(/\[\d+\]/, '[' + i + ']');
+                             $(this).attr('name', newName);
+                         });
+                    });
+                 }
+             });
+        });
+    </script>
+}

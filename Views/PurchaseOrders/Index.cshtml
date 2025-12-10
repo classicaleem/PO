@@ -77,8 +77,8 @@
                                         <a asp-action="Edit" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="fas fa-edit"></i>
                                         </a>
-                                        <a asp-action="PrintPo" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-secondary" title="Print PO" target="_blank">
-                                            <i class="fas fa-print"></i>
+                                        <a asp-action="DownloadPdf" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-success" title="Download PDF">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
                                         <a asp-action="Delete" asp-route-id="@po.PoId" class="btn btn-sm btn-outline-danger" title="Delete">
                                             <i class="fas fa-trash"></i>

@@ -90,11 +90,34 @@
                         <span id="totalItems" class="fw-bold">@Model.Items.Count</span>
                     </div>
                     <hr>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="h5 mb-0">PO Amount:</span>
-                        <span id="poAmount" class="h4 mb-0 text-primary">₹@Model.PoAmount.ToString("N2")</span>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Sub Total:</span>
+                        <span id="poAmount" class="fw-bold">₹@Model.PoAmount.ToString("N2")</span>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                        <span>CGST (<span id="cgstDisplay">@Model.CgstPercent</span>%):</span>
+                        <span id="cgstAmount">₹@((Model.PoAmount * Model.CgstPercent / 100).ToString("N2"))</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                        <span>SGST (<span id="sgstDisplay">@Model.SgstPercent</span>%):</span>
+                        <span id="sgstAmount">₹@((Model.PoAmount * Model.SgstPercent / 100).ToString("N2"))</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
+                        <span>IGST (<span id="igstDisplay">@Model.IgstPercent</span>%):</span>
+                        <span id="igstAmount">₹@((Model.PoAmount * Model.IgstPercent / 100).ToString("N2"))</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                        <span class="h5 mb-0">Grand Total:</span>
+                        <span id="grandTotal" class="h4 mb-0 text-success">₹@Model.GrandTotal.ToString("N2")</span>
+                    </div>
+                    
                     <input type="hidden" asp-for="PoAmount" id="poAmountInput" />
+                    <input type="hidden" asp-for="CgstPercent" id="cgstInput" />
+                    <input type="hidden" asp-for="SgstPercent" id="sgstInput" />
+                    <input type="hidden" asp-for="IgstPercent" id="igstInput" />
+                    <input type="hidden" asp-for="TaxAmount" id="taxAmountInput" />
+                    <input type="hidden" asp-for="GrandTotal" id="grandTotalInput" />
                 </div>
             </div>
 
@@ -180,9 +203,25 @@
                     $.get('@Url.Action("GetCustomerDetails", "Customers")', { id: customerId }, function(data) {
                         $('#customerDetailsDiv').show();
                         $('#customerDetails').val(data.customerName + '\n' + data.address + '\nGST: ' + (data.gstNumber || 'N/A'));
+                        
+                        // Fetch tax defaults on change
+                        $.get('@Url.Action("GetTaxDefaults", "Customers")', { state: data.state }, function(taxData) {
+                            $('#cgstInput').val(taxData.cgst);
+                            $('#sgstInput').val(taxData.sgst);
+                            $('#igstInput').val(taxData.igst);
+                            
+                            $('#cgstDisplay').text(taxData.cgst);
+                            $('#sgstDisplay').text(taxData.sgst);
+                            $('#igstDisplay').text(taxData.igst);
+                            
+                            calculateTotals();
+                        });
                     });
                 } else {
                     $('#customerDetailsDiv').hide();
+                    $('#cgstInput').val(0); $('#sgstInput').val(0); $('#igstInput').val(0);
+                    $('#cgstDisplay').text(0); $('#sgstDisplay').text(0); $('#igstDisplay').text(0);
+                    calculateTotals();
                 }
             });
 
@@ -205,8 +244,28 @@
                     });
                 });
                 $('#totalItems').text(itemCount);
+                $('#totalItems').text(itemCount);
                 $('#poAmount').text('₹' + totalAmount.toFixed(2));
                 $('#poAmountInput').val(totalAmount.toFixed(2));
+                
+                // Calculate Taxes
+                var cgst = parseFloat($('#cgstInput').val()) || 0;
+                var sgst = parseFloat($('#sgstInput').val()) || 0;
+                var igst = parseFloat($('#igstInput').val()) || 0;
+                
+                var cgstAmt = totalAmount * (cgst / 100);
+                var sgstAmt = totalAmount * (sgst / 100);
+                var igstAmt = totalAmount * (igst / 100);
+                var totalTax = cgstAmt + sgstAmt + igstAmt;
+                var grandTotal = totalAmount + totalTax;
+
+                $('#cgstAmount').text('₹' + cgstAmt.toFixed(2));
+                $('#sgstAmount').text('₹' + sgstAmt.toFixed(2));
+                $('#igstAmount').text('₹' + igstAmt.toFixed(2));
+                $('#grandTotal').text('₹' + grandTotal.toFixed(2));
+                
+                $('#taxAmountInput').val(totalTax.toFixed(2));
+                $('#grandTotalInput').val(grandTotal.toFixed(2));
             }
 
             $(document).on('input', '.item-quantity, .item-price', calculateTotals);

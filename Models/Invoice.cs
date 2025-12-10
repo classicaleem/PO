@@ -7,6 +7,11 @@ namespace HRPackage.Models
         public string InvoiceNumber { get; set; } = string.Empty;
         public DateTime InvoiceDate { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal CgstPercent { get; set; }
+        public decimal SgstPercent { get; set; }
+        public decimal IgstPercent { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal GrandTotal { get; set; }
         public string? ShippingAddress { get; set; }
         public bool IsPaid { get; set; }
         public bool IsDeleted { get; set; }

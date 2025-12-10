@@ -107,6 +107,12 @@ namespace HRPackage.Controllers
                 CustomerId = model.CustomerId,
                 SupplierName = customer?.CustomerName ?? "",
                 PoAmount = model.Items.Sum(i => i.Quantity * i.UnitPrice),
+                CgstPercent = model.CgstPercent,
+                SgstPercent = model.SgstPercent,
+                IgstPercent = model.IgstPercent,
+                // Recalculate tax amounts on server side for safety
+                TaxAmount = model.Items.Sum(i => i.Quantity * i.UnitPrice) * (model.CgstPercent + model.SgstPercent + model.IgstPercent) / 100,
+                GrandTotal = model.Items.Sum(i => i.Quantity * i.UnitPrice) * (1 + (model.CgstPercent + model.SgstPercent + model.IgstPercent) / 100),
                 PoDate = model.PoDate,
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
@@ -147,6 +153,11 @@ namespace HRPackage.Controllers
                 CustomerId = purchaseOrder.CustomerId ?? 0,
                 SupplierName = purchaseOrder.SupplierName,
                 PoAmount = purchaseOrder.PoAmount,
+                CgstPercent = purchaseOrder.CgstPercent,
+                SgstPercent = purchaseOrder.SgstPercent,
+                IgstPercent = purchaseOrder.IgstPercent,
+                TaxAmount = purchaseOrder.TaxAmount,
+                GrandTotal = purchaseOrder.GrandTotal,
                 PoDate = purchaseOrder.PoDate,
                 StartDate = purchaseOrder.StartDate,
                 EndDate = purchaseOrder.EndDate,
@@ -224,6 +235,12 @@ namespace HRPackage.Controllers
                 CustomerId = model.CustomerId,
                 SupplierName = customer?.CustomerName ?? "",
                 PoAmount = model.Items.Sum(i => i.Quantity * i.UnitPrice),
+                CgstPercent = model.CgstPercent,
+                SgstPercent = model.SgstPercent,
+                IgstPercent = model.IgstPercent,
+                // Recalculate tax amounts on server side for safety
+                TaxAmount = model.Items.Sum(i => i.Quantity * i.UnitPrice) * (model.CgstPercent + model.SgstPercent + model.IgstPercent) / 100,
+                GrandTotal = model.Items.Sum(i => i.Quantity * i.UnitPrice) * (1 + (model.CgstPercent + model.SgstPercent + model.IgstPercent) / 100),
                 PoDate = model.PoDate,
                 StartDate = model.StartDate,
                 EndDate = model.EndDate,
@@ -260,6 +277,27 @@ namespace HRPackage.Controllers
             await _purchaseOrdersRepository.SoftDeleteAsync(id);
             TempData["Success"] = "Purchase Order deleted successfully.";
             return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            var purchaseOrder = await _purchaseOrdersRepository.GetByIdWithItemsAsync(id);
+            if (purchaseOrder == null)
+            {
+                return NotFound();
+            }
+
+            if (purchaseOrder.CustomerId.HasValue)
+            {
+                purchaseOrder.Customer = await _customersRepository.GetByIdAsync(purchaseOrder.CustomerId.Value);
+            }
+
+            return new Rotativa.AspNetCore.ViewAsPdf("PrintPo", purchaseOrder)
+            {
+                FileName = $"PO_{purchaseOrder.PoNumber}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
+            };
         }
 
         // Print view for PDF

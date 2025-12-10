@@ -31,12 +31,15 @@
                 </li>
 
                 <!-- Customers -->
-                <li class="nav-item">
-                    <a href="@Url.Action("Index", "Customers")" class="nav-link @(currentController == "Customers" ? "active" : "")">
-                        <i class="nav-icon fas fa-users"></i>
-                        <p>Customers</p>
-                    </a>
-                </li>
+                @if (isAdmin)
+                {
+                    <li class="nav-item">
+                        <a href="@Url.Action("Index", "Customers")" class="nav-link @(currentController == "Customers" ? "active" : "")">
+                            <i class="nav-icon fas fa-users"></i>
+                            <p>Customers</p>
+                        </a>
+                    </li>
+                }
 
                 <!-- Purchase Orders -->
                 <li class="nav-item">
@@ -51,6 +54,22 @@
                     <a href="@Url.Action("Index", "Invoices")" class="nav-link @(currentController == "Invoices" ? "active" : "")">
                         <i class="nav-icon fas fa-receipt"></i>
                         <p>Invoices</p>
+                    </a>
+                </li>
+
+                <!-- Delivery Challans -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "DeliveryChallans")" class="nav-link @(currentController == "DeliveryChallans" ? "active" : "")">
+                        <i class="nav-icon fas fa-truck"></i>
+                        <p>Delivery Challans</p>
+                    </a>
+                </li>
+                
+                <!-- Quotations -->
+                <li class="nav-item">
+                    <a href="@Url.Action("Index", "Quotations")" class="nav-link @(currentController == "Quotations" ? "active" : "")">
+                        <i class="nav-icon fas fa-file-invoice"></i>
+                        <p>Quotations</p>
                     </a>
                 </li>
 

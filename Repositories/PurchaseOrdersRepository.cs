@@ -37,7 +37,8 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
                                c.CustomerName
@@ -53,7 +54,8 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
                                c.CustomerName
@@ -69,7 +71,8 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
                                c.CustomerName
@@ -97,7 +100,8 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             
             var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
-                               p.PoAmount, p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.GrandTotal,
+                               p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
                                c.CustomerName
@@ -136,9 +140,11 @@ namespace HRPackage.Repositories
             {
                 // Insert PO header
                 var poSql = @"INSERT INTO PurchaseOrders (PoNumber, InternalPoCode, CustomerId, SupplierName, 
-                                   PoAmount, PoDate, StartDate, EndDate, CreatedDate, CreatedByUserId, IsCompleted, IsDeleted)
+                                   PoAmount, CgstPercent, SgstPercent, IgstPercent, TaxAmount, GrandTotal,
+                                   PoDate, StartDate, EndDate, CreatedDate, CreatedByUserId, IsCompleted, IsDeleted)
                               VALUES (@PoNumber, @InternalPoCode, @CustomerId, @SupplierName, 
-                                   @PoAmount, @PoDate, @StartDate, @EndDate, GETDATE(), @CreatedByUserId, 0, 0);
+                                   @PoAmount, @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @GrandTotal,
+                                   @PoDate, @StartDate, @EndDate, GETDATE(), @CreatedByUserId, 0, 0);
                               SELECT CAST(SCOPE_IDENTITY() as int)";
                 var poId = await connection.QuerySingleAsync<int>(poSql, po, transaction);
 
@@ -176,7 +182,9 @@ namespace HRPackage.Repositories
                 // Update PO header
                 var poSql = @"UPDATE PurchaseOrders 
                               SET PoNumber = @PoNumber, CustomerId = @CustomerId, SupplierName = @SupplierName, 
-                                  PoAmount = @PoAmount, PoDate = @PoDate, StartDate = @StartDate, EndDate = @EndDate,
+                                  PoAmount = @PoAmount, CgstPercent = @CgstPercent, SgstPercent = @SgstPercent, 
+                                  IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, GrandTotal = @GrandTotal,
+                                  PoDate = @PoDate, StartDate = @StartDate, EndDate = @EndDate,
                                   IsCompleted = @IsCompleted
                               WHERE PoId = @PoId AND IsDeleted = 0";
                 await connection.ExecuteAsync(poSql, po, transaction);
@@ -222,7 +230,7 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT 
                             COUNT(*) as TotalPOs,
-                            SUM(CASE WHEN IsCompleted = 1 THEN 1 ELSE 0 END) as CompletedPOs,
+                            ISNULL(SUM(CASE WHEN IsCompleted = 1 THEN 1 ELSE 0 END), 0) as CompletedPOs,
                             ISNULL(SUM(PoAmount), 0) as TotalAmount
                         FROM PurchaseOrders 
                         WHERE IsDeleted = 0";

@@ -33,6 +33,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
@@ -47,6 +48,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT InvoiceId, PoId, InvoiceNumber, InvoiceDate, TotalAmount, 
+                               CgstPercent, SgstPercent, IgstPercent, TaxAmount, GrandTotal,
                                ShippingAddress, IsPaid, IsDeleted
                         FROM Invoices
                         WHERE PoId = @poId AND IsDeleted = 0
@@ -58,6 +60,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
@@ -72,6 +75,7 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
@@ -106,8 +110,12 @@ namespace HRPackage.Repositories
                 invoice.TotalAmount = items.Sum(i => i.LineAmount);
 
                 // Insert invoice header
-                var invoiceSql = @"INSERT INTO Invoices (PoId, InvoiceNumber, InvoiceDate, TotalAmount, ShippingAddress, IsPaid, IsDeleted)
-                                   VALUES (@PoId, @InvoiceNumber, @InvoiceDate, @TotalAmount, @ShippingAddress, @IsPaid, 0);
+                var invoiceSql = @"INSERT INTO Invoices (PoId, InvoiceNumber, InvoiceDate, TotalAmount, 
+                                               CgstPercent, SgstPercent, IgstPercent, TaxAmount, GrandTotal,
+                                               ShippingAddress, IsPaid, IsDeleted)
+                                   VALUES (@PoId, @InvoiceNumber, @InvoiceDate, @TotalAmount, 
+                                           @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @GrandTotal,
+                                           @ShippingAddress, @IsPaid, 0);
                                    SELECT CAST(SCOPE_IDENTITY() as int)";
                 var invoiceId = await connection.QuerySingleAsync<int>(invoiceSql, invoice, transaction);
 
@@ -137,7 +145,9 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"UPDATE Invoices 
                         SET PoId = @PoId, InvoiceNumber = @InvoiceNumber, InvoiceDate = @InvoiceDate, 
-                            TotalAmount = @TotalAmount, ShippingAddress = @ShippingAddress, IsPaid = @IsPaid
+                            TotalAmount = @TotalAmount, CgstPercent = @CgstPercent, SgstPercent = @SgstPercent, 
+                            IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, GrandTotal = @GrandTotal,
+                            ShippingAddress = @ShippingAddress, IsPaid = @IsPaid
                         WHERE InvoiceId = @InvoiceId AND IsDeleted = 0";
             var rowsAffected = await connection.ExecuteAsync(sql, invoice);
             return rowsAffected > 0;

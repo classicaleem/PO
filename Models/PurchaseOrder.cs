@@ -8,6 +8,11 @@ namespace HRPackage.Models
         public int? CustomerId { get; set; }
         public string SupplierName { get; set; } = string.Empty; // Kept for backward compat
         public decimal PoAmount { get; set; }
+        public decimal CgstPercent { get; set; }
+        public decimal SgstPercent { get; set; }
+        public decimal IgstPercent { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal GrandTotal { get; set; }
         public DateTime? PoDate { get; set; }
         public DateTime? StartDate { get; set; }
         public DateTime? EndDate { get; set; }

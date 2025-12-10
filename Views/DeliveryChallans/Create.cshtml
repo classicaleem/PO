@@ -1,0 +1,117 @@
+@model HRPackage.Models.ViewModels.DeliveryChallanViewModel
+@{
+    ViewData["Title"] = "Create Delivery Challan";
+}
+
+<div class="page-header">
+    <h1>Create Delivery Challan</h1>
+</div>
+
+<form asp-action="Create" method="post" id="dcForm">
+    <div asp-validation-summary="All" class="text-danger"></div>
+    
+    <div class="card mb-3">
+        <div class="card-header">DC Details</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label asp-for="DcNumber" class="form-label">DC Number *</label>
+                    <input asp-for="DcNumber" class="form-control" />
+                    <span asp-validation-for="DcNumber" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="DcDate" class="form-label">Date *</label>
+                    <input asp-for="DcDate" class="form-control" />
+                    <span asp-validation-for="DcDate" class="text-danger"></span>
+                </div>
+                <div class="col-md-4">
+                    <label asp-for="VehicleNo" class="form-label">Vehicle No</label>
+                    <input asp-for="VehicleNo" class="form-control" />
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="CustomerId" class="form-label">Customer</label>
+                    <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select select2">
+                        <option value="">-- Select Customer --</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label asp-for="TargetCompany" class="form-label">Target Company (If Not Customer)</label>
+                    <input asp-for="TargetCompany" class="form-control" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between">
+            <span>Items</span>
+            <button type="button" class="btn btn-sm btn-primary" id="addBtn">Add Item</button>
+        </div>
+        <div class="card-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th width="50%">Description</th>
+                        <th width="15%">Qty</th>
+                        <th width="15%">Unit</th>
+                        <th width="15%">Remarks</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="itemsBody">
+                    @for(int i=0; i< Model.Items.Count; i++)
+                    {
+                        <tr class="item-row">
+                            <td><input name="Items[@i].Description" value="@Model.Items[i].Description" class="form-control" placeholder="Description" /></td>
+                            <td><input name="Items[@i].Quantity" value="@Model.Items[i].Quantity" type="number" class="form-control" min="1" /></td>
+                            <td><input name="Items[@i].Unit" value="@Model.Items[i].Unit" class="form-control" /></td>
+                            <td><input name="Items[@i].Remarks" value="@Model.Items[i].Remarks" class="form-control" /></td>
+                            <td><button type="button" class="btn btn-danger btn-sm remove-btn">X</button></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-success">Save DC</button>
+        <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+             $('.select2').select2({ theme: 'bootstrap-5' });
+             
+             $('#addBtn').click(function() {
+                 var idx = $('.item-row').length;
+                 var row = `
+                    <tr class="item-row">
+                        <td><input name="Items[${idx}].Description" class="form-control" placeholder="Description" /></td>
+                        <td><input name="Items[${idx}].Quantity" type="number" class="form-control" value="1" min="1" /></td>
+                        <td><input name="Items[${idx}].Unit" value="NO" class="form-control" /></td>
+                        <td><input name="Items[${idx}].Remarks" class="form-control" /></td>
+                        <td><button type="button" class="btn btn-danger btn-sm remove-btn">X</button></td>
+                    </tr>
+                 `;
+                 $('#itemsBody').append(row);
+             });
+
+             $(document).on('click', '.remove-btn', function() {
+                 if ($('.item-row').length > 1) {
+                    $(this).closest('tr').remove();
+                    // Re-index
+                    $('.item-row').each(function(i) {
+                         $(this).find('input').each(function() {
+                             var name = $(this).attr('name').replace(/\[\d+\]/, '[' + i + ']');
+                             $(this).attr('name', name);
+                         });
+                    });
+                 }
+             });
+        });
+    </script>
+}

@@ -1,0 +1,140 @@
+@using Microsoft.Extensions.Options
+@using HRPackage.Models
+@inject IOptions<CompanySettings> CompanySettings
+@model DeliveryChallan
+@{
+    Layout = null;
+    var company = CompanySettings.Value;
+    ViewData["Title"] = "DC - " + Model.DcNumber;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <style>
+        body { font-family: 'Arial', sans-serif; font-size: 13px; margin: 0; padding: 10px; }
+        .dc-container { border: 1px solid #000; max-width: 210mm; margin: 0 auto; height: 100vh; display: flex; flex-direction: column; }
+        
+        /* Tables */
+        .layout-table { width: 100%; border-collapse: collapse; border-bottom: 1px solid #000; }
+        .layout-table td { border-right: 1px solid #000; padding: 5px; vertical-align: top; }
+        .layout-table td:last-child { border-right: none; }
+
+        /* Items Grid */
+        .items-container { flex-grow: 1; display: flex; flex-direction: column; }
+        .items-table { width: 100%; border-collapse: collapse; }
+        .items-table th { border-bottom: 1px solid #000; border-right: 1px solid #000; padding: 5px; text-align: center; }
+        .items-table th:last-child { border-right: none; }
+        .items-table td { border-right: 1px solid #000; padding: 5px; vertical-align: top; }
+        .items-table td:last-child { border-right: none; }
+
+        .items-spacer { flex-grow: 1; display: flex; width: 100%; }
+        .items-spacer div { border-right: 1px solid #000; }
+        .items-spacer div:last-child { border-right: none; }
+
+        /* Footer */
+        .dc-footer { border-top: 1px solid #000; margin-top: auto; }
+
+        @@media print {
+            .no-print { display: none; }
+            .dc-container { height: 100%; border: 1px solid #000; }
+            body { margin: 0; padding: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print text-center mb-2">
+        <button onclick="window.print()" class="btn btn-primary">Print</button>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">Back</a>
+    </div>
+
+    <div class="dc-container">
+        <!-- Header -->
+        <table class="layout-table">
+            <tr>
+                <td style="width: 30%; text-align: center;">
+                    <img src="/images/logo.jpg" style="max-width: 60px;" />
+                    <h3 class="m-0 text-primary">SIM</h3>
+                </td>
+                <td style="width: 40%; text-align: center; vertical-align: middle;">
+                    <span style="font-size: 20px; font-weight: bold;">DELIVERY CHALLAN</span>
+                </td>
+                <td style="width: 30%;">
+                    <div><strong>DC NO:</strong> @Model.DcNumber</div>
+                    <div><strong>DC DATE:</strong> @Model.DcDate.ToString("dd/MM/yyyy")</div>
+                    <div><strong>Kind Attn:</strong> -</div>
+                    <div><strong>Vehicle no:</strong> @Model.VehicleNo</div>
+                </td>
+            </tr>
+        </table>
+
+        <!-- Address -->
+        <table class="layout-table">
+            <tr>
+                <td style="width: 50%;">
+                    <strong>From : @company.Name.ToUpper()</strong> <br/>
+                    @company.AddressLine1 <br/>
+                    @company.AddressLine2 <br/>
+                    Email : @company.Email | Ph: @company.Phone <br/>
+                    <strong>GST NO : @company.GstNumber</strong>
+                </td>
+                <td style="width: 50%;">
+                    <strong>To : @(Model.Customer?.CustomerName ?? Model.TargetCompany)</strong> <br/>
+                    @(Model.Customer?.FullAddress ?? "") <br/>
+                    <strong>GST NO : @(Model.Customer?.GstNumber ?? "-")</strong> <br/>
+                    <strong>VENDOR CODE : </strong> -
+                </td>
+            </tr>
+        </table>
+
+        <!-- Items -->
+        <div class="items-container">
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Sl.No</th>
+                        <th style="width: 60%;">Description</th>
+                        <th style="width: 15%;">Quantity</th>
+                        <th style="width: 15%;">Remark</th>
+                    </tr>
+                </thead>
+                <tbody>
+                     @for(int i = 0; i < Model.Items.Count; i++)
+                     {
+                         <tr>
+                            <td style="text-align: center;">@(i+1)</td>
+                            <td>@Model.Items[i].Description</td>
+                            <td style="text-align: center;">@Model.Items[i].Quantity @Model.Items[i].Unit</td>
+                            <td style="text-align: center;">@Model.Items[i].Remarks</td>
+                         </tr>
+                     }
+                </tbody>
+            </table>
+            
+            <!-- Spacer to push footer down -->
+            <div class="items-spacer">
+                <div style="width: 10%;"></div>
+                <div style="width: 60%;"></div>
+                <div style="width: 15%;"></div>
+                <div style="width: 15%;"></div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <table style="width: 100%; border-top: 1px solid #000; border-collapse: collapse; height: 100px; margin-top: auto;">
+            <tr>
+                <td style="width: 50%; border-right: 1px solid #000; padding: 5px; vertical-align: bottom; position: relative;">
+                     <div style="text-align: center; font-weight: bold;">Customer's Seal and Signature</div>
+                </td>
+                <td style="width: 50%; padding: 5px; vertical-align: bottom; position: relative;">
+                     <div class="text-end pe-2 small"><strong>For @company.Name.ToUpper()</strong></div>
+                     <div class="text-end pe-2" style="font-weight: bold; margin-top: 40px;">Authorised Signature</div>
+                </td>
+            </tr>
+        </table>
+        <div class="text-center small border-top border-dark">This is a Computer Generated DC</div>
+    </div>
+</body>
+</html>

@@ -18,6 +18,7 @@ namespace HRPackage.Controllers
             _customersRepository = customersRepository;
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
             var customers = await _customersRepository.GetAllAsync();
@@ -34,6 +35,7 @@ namespace HRPackage.Controllers
             return View(customer);
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create()
         {
             var model = new CustomerViewModel
@@ -46,6 +48,7 @@ namespace HRPackage.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CustomerViewModel model)
         {
             if (!ModelState.IsValid)
@@ -88,6 +91,7 @@ namespace HRPackage.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id)
         {
             var customer = await _customersRepository.GetByIdAsync(id);
@@ -122,6 +126,7 @@ namespace HRPackage.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, CustomerViewModel model)
         {
             if (id != model.CustomerId)
@@ -167,6 +172,7 @@ namespace HRPackage.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var customer = await _customersRepository.GetByIdAsync(id);
@@ -179,6 +185,7 @@ namespace HRPackage.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             await _customersRepository.SoftDeleteAsync(id);
@@ -222,6 +229,7 @@ namespace HRPackage.Controllers
                 customerName = customer.CustomerName,
                 address = customer.FullAddress,
                 gstNumber = customer.GstNumber,
+                state = customer.State, // Adding State for Tax Calculation
                 cgst = customer.DefaultCgstPercent,
                 sgst = customer.DefaultSgstPercent,
                 igst = customer.DefaultIgstPercent

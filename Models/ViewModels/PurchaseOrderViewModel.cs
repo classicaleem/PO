@@ -27,6 +27,11 @@ namespace HRPackage.Models.ViewModels
         [Display(Name = "PO Amount")]
         [DataType(DataType.Currency)]
         public decimal PoAmount { get; set; }
+        public decimal CgstPercent { get; set; }
+        public decimal SgstPercent { get; set; }
+        public decimal IgstPercent { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal GrandTotal { get; set; }
 
         [Required(ErrorMessage = "PO Date is required")]
         [Display(Name = "PO Date")]

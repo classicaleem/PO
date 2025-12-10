@@ -70,8 +70,8 @@
                                         <a asp-action="Details" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-info" title="View">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a asp-action="PrintInvoice" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-secondary" title="Print" target="_blank">
-                                            <i class="fas fa-print"></i>
+                                        <a asp-action="DownloadPdf" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-success" title="Download PDF">
+                                            <i class="fas fa-file-pdf"></i>
                                         </a>
                                         <a asp-action="Edit" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="fas fa-edit"></i>

@@ -1,0 +1,45 @@
+@model IEnumerable<DeliveryChallan>
+@{
+    ViewData["Title"] = "Delivery Challans";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Delivery Challans</h1>
+    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New DC</a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="card">
+    <div class="card-body">
+        <table class="table table-striped" id="dcTable">
+            <thead>
+                <tr>
+                    <th>DC Number</th>
+                    <th>Date</th>
+                    <th>Customer / Company</th>
+                    <th>Vehicle No</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach(var item in Model)
+                {
+                    <tr>
+                        <td>@item.DcNumber</td>
+                        <td>@item.DcDate.ToString("dd-MMM-yyyy")</td>
+                        <td>@(item.Customer?.CustomerName ?? item.TargetCompany)</td>
+                        <td>@item.VehicleNo</td>
+                        <td>
+                            <a asp-action="DownloadPdf" asp-route-id="@item.DcId" class="btn btn-sm btn-info"><i class="fas fa-file-pdf"></i></a>
+                            <a asp-action="Delete" asp-route-id="@item.DcId" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

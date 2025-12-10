@@ -10,12 +10,17 @@ builder.Services.AddControllersWithViews();
 // Database connection factory
 builder.Services.AddSingleton<IDbConnectionFactory, SqlDbConnectionFactory>();
 
+// Configuration
+builder.Services.Configure<HRPackage.Models.CompanySettings>(builder.Configuration.GetSection("CompanySettings"));
+
 // Repositories
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();
 builder.Services.AddScoped<ICustomersRepository, CustomersRepository>();
 builder.Services.AddScoped<IPurchaseOrdersRepository, PurchaseOrdersRepository>();
 builder.Services.AddScoped<IInvoicesRepository, InvoicesRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IDeliveryChallansRepository, DeliveryChallansRepository>();
+builder.Services.AddScoped<IQuotationsRepository, QuotationsRepository>();
 
 // Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -47,6 +52,8 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+Rotativa.AspNetCore.RotativaConfiguration.Setup(app.Environment.WebRootPath, "Rotativa");
 
 app.MapControllerRoute(
     name: "default",

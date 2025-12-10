@@ -113,6 +113,19 @@ namespace HRPackage.Controllers
                 TotalAmount = model.Items.Sum(i => i.ThisInvoiceQuantity * i.UnitPrice)
             };
 
+            // Calculate taxes based on PO rates
+            var po = await _purchaseOrdersRepository.GetByIdAsync(model.PoId);
+            if (po != null)
+            {
+                invoice.CgstPercent = po.CgstPercent;
+                invoice.SgstPercent = po.SgstPercent;
+                invoice.IgstPercent = po.IgstPercent;
+                
+                // Calculate tax amount on the INVOICED Total
+                invoice.TaxAmount = invoice.TotalAmount * (po.CgstPercent + po.SgstPercent + po.IgstPercent) / 100;
+                invoice.GrandTotal = invoice.TotalAmount + invoice.TaxAmount;
+            }
+
             var items = model.Items.Select(i => new InvoiceItem
             {
                 PoItemId = i.PoItemId,
@@ -150,6 +163,12 @@ namespace HRPackage.Controllers
                 ShippingAddress = invoice.ShippingAddress,
                 InternalPoCode = invoice.InternalPoCode,
                 CustomerName = invoice.CustomerName,
+                // Add tax info for display/binding
+                CgstPercent = invoice.CgstPercent,
+                SgstPercent = invoice.SgstPercent,
+                IgstPercent = invoice.IgstPercent,
+                TaxAmount = invoice.TaxAmount,
+                GrandTotal = invoice.GrandTotal,
                 PurchaseOrders = await _purchaseOrdersRepository.GetDropdownListAsync()
             };
 
@@ -188,6 +207,17 @@ namespace HRPackage.Controllers
                 ShippingAddress = model.UseDifferentShippingAddress ? model.ShippingAddress : null,
                 IsPaid = model.IsPaid
             };
+
+            // Recalculate taxes based on PO rates (to be safe or allow override if we supported it)
+            var poForEdit = await _purchaseOrdersRepository.GetByIdAsync(model.PoId);
+            if (poForEdit != null)
+            {
+                invoice.CgstPercent = poForEdit.CgstPercent;
+                invoice.SgstPercent = poForEdit.SgstPercent;
+                invoice.IgstPercent = poForEdit.IgstPercent;
+                invoice.TaxAmount = invoice.TotalAmount * (poForEdit.CgstPercent + poForEdit.SgstPercent + poForEdit.IgstPercent) / 100;
+                invoice.GrandTotal = invoice.TotalAmount + invoice.TaxAmount;
+            }
 
             await _invoicesRepository.UpdateAsync(invoice);
             TempData["Success"] = "Invoice updated successfully.";
@@ -240,6 +270,24 @@ namespace HRPackage.Controllers
         }
 
         // API endpoint for loading PO items
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            var invoice = await _invoicesRepository.GetByIdAsync(id);
+            if (invoice == null) return NotFound();
+
+            if (invoice.PurchaseOrder == null && invoice.PoId != 0)
+            {
+                 // Load PO if not loaded (Repository usually loads it but let's be safe or just pass what we have)
+            }
+
+            return new Rotativa.AspNetCore.ViewAsPdf("PrintInvoice", invoice)
+            {
+                FileName = $"Invoice_{invoice.InvoiceNumber}.pdf",
+                PageSize = Rotativa.AspNetCore.Options.Size.A4,
+                PageMargins = new Rotativa.AspNetCore.Options.Margins(10, 10, 10, 10)
+            };
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetPoItems(int poId)
         {
@@ -263,7 +311,18 @@ namespace HRPackage.Controllers
                 customerName = customer?.CustomerName ?? po.SupplierName,
                 customerAddress = customer?.FullAddress ?? "",
                 customerGstNumber = customer?.GstNumber ?? "",
-                items = items
+                // Return tax rates from PO
+                cgstPercent = po.CgstPercent,
+                sgstPercent = po.SgstPercent,
+                igstPercent = po.IgstPercent,
+                items = items.Select(i => new {
+                    poItemId = i.PoItemId,
+                    itemDescription = i.ItemDescription,
+                    orderedQuantity = i.OrderedQuantity,
+                    previouslyInvoiced = i.PreviouslyInvoiced,
+                    pendingQuantity = i.PendingQuantity,
+                    unitPrice = i.UnitPrice
+                })
             });
         }
 

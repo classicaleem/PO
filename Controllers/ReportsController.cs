@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HRPackage.Controllers
 {
-    [Authorize(Roles = "Admin")]
+    [Authorize]
     public class ReportsController : Controller
     {
         private readonly IReportRepository _reportRepository;
@@ -14,16 +14,28 @@ namespace HRPackage.Controllers
             _reportRepository = reportRepository;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var report = await _reportRepository.GetPoReportAsync();
-            return View(report);
+            return View();
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> SalesReport()
+        {
+            var data = await _reportRepository.GetSalesReportAsync();
+            return View(data);
         }
 
         public async Task<IActionResult> PendingQuantity()
         {
-            var report = await _reportRepository.GetPendingQuantityReportAsync();
-            return View(report);
+            var data = await _reportRepository.GetPendingQuantityReportAsync();
+            return View(data);
+        }
+
+        public async Task<IActionResult> PoSummary()
+        {
+            var data = await _reportRepository.GetPoSummaryReportAsync();
+            return View(data);
         }
     }
 }

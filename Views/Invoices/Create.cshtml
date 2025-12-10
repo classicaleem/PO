@@ -104,11 +104,34 @@
                         <span id="lineItemCount" class="fw-bold">0</span>
                     </div>
                     <hr>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="h5 mb-0">Total:</span>
-                        <span id="invoiceTotal" class="h4 mb-0 text-success">₹0.00</span>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Sub Total:</span>
+                        <span id="invoiceTotal" class="fw-bold">₹0.00</span>
                     </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                        <span>CGST (<span id="cgstDisplay">0</span>%):</span>
+                        <span id="cgstAmount">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                        <span>SGST (<span id="sgstDisplay">0</span>%):</span>
+                        <span id="sgstAmount">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
+                        <span>IGST (<span id="igstDisplay">0</span>%):</span>
+                        <span id="igstAmount">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center border-top pt-2">
+                        <span class="h5 mb-0">Grand Total:</span>
+                        <span id="grandTotal" class="h4 mb-0 text-success">₹0.00</span>
+                    </div>
+
                     <input type="hidden" asp-for="TotalAmount" id="totalAmountInput" />
+                    <input type="hidden" asp-for="CgstPercent" id="cgstInput" value="0" />
+                    <input type="hidden" asp-for="SgstPercent" id="sgstInput" value="0" />
+                    <input type="hidden" asp-for="IgstPercent" id="igstInput" value="0" />
+                    <input type="hidden" asp-for="TaxAmount" id="taxAmountInput" value="0" />
+                    <input type="hidden" asp-for="GrandTotal" id="grandTotalInput" value="0" />
                 </div>
             </div>
 
@@ -186,6 +209,15 @@
                         $('#customerName').text(data.customerName);
                         $('#poInfo').text(data.internalPoCode + ' - ' + data.poNumber);
                         $('#customerAddress').text(data.customerAddress);
+                        
+                        // Set tax rates from PO
+                        $('#cgstInput').val(data.cgstPercent);
+                        $('#sgstInput').val(data.sgstPercent);
+                        $('#igstInput').val(data.igstPercent);
+                        
+                        $('#cgstDisplay').text(data.cgstPercent);
+                        $('#sgstDisplay').text(data.sgstPercent);
+                        $('#igstDisplay').text(data.igstPercent);
 
                         // Populate items
                         var html = '';
@@ -226,6 +258,11 @@
                     $('#poDetailsDiv').hide();
                     $('#itemsCard').hide();
                     $('#itemsBody').html('');
+                    
+                    // Reset taxes
+                    $('#cgstInput').val(0); $('#sgstInput').val(0); $('#igstInput').val(0);
+                    $('#cgstDisplay').text(0); $('#sgstDisplay').text(0); $('#igstDisplay').text(0);
+                    calculateTotal();
                 }
             });
 
@@ -246,6 +283,25 @@
                 $('#invoiceTotal').text('₹' + total.toFixed(2));
                 $('#footerTotal').text('₹' + total.toFixed(2));
                 $('#totalAmountInput').val(total.toFixed(2));
+
+                // Calculate Taxes
+                var cgst = parseFloat($('#cgstInput').val()) || 0;
+                var sgst = parseFloat($('#sgstInput').val()) || 0;
+                var igst = parseFloat($('#igstInput').val()) || 0;
+                
+                var cgstAmt = total * (cgst / 100);
+                var sgstAmt = total * (sgst / 100);
+                var igstAmt = total * (igst / 100);
+                var totalTax = cgstAmt + sgstAmt + igstAmt;
+                var grandTotal = total + totalTax;
+
+                $('#cgstAmount').text('₹' + cgstAmt.toFixed(2));
+                $('#sgstAmount').text('₹' + sgstAmt.toFixed(2));
+                $('#igstAmount').text('₹' + igstAmt.toFixed(2));
+                $('#grandTotal').text('₹' + grandTotal.toFixed(2));
+                
+                $('#taxAmountInput').val(totalTax.toFixed(2));
+                $('#grandTotalInput').val(grandTotal.toFixed(2));
             }
 
             $(document).on('input', '.item-qty', function() {
