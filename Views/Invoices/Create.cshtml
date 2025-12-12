@@ -159,7 +159,9 @@
                 <table class="table table-bordered" id="itemsTable">
                     <thead class="table-light">
                         <tr>
-                            <th style="width: 30%;">Item Description</th>
+
+                            <th style="width: 25%;">Item Description</th>
+                            <th style="width: 10%;">HSN Code</th>
                             <th style="width: 10%;" class="text-end">Ordered</th>
                             <th style="width: 10%;" class="text-end">Invoiced</th>
                             <th style="width: 10%;" class="text-end">Pending</th>
@@ -173,7 +175,7 @@
                     </tbody>
                     <tfoot>
                         <tr class="table-light">
-                            <th colspan="6" class="text-end">Total Invoice Amount:</th>
+                            <th colspan="7" class="text-end">Total Invoice Amount:</th>
                             <th class="text-end text-success fs-5" id="footerTotal">₹0.00</th>
                         </tr>
                     </tfoot>
@@ -235,8 +237,10 @@
                                         <input type="hidden" name="Items[${idx}].PreviouslyInvoiced" value="${item.previouslyInvoiced}" />
                                         <input type="hidden" name="Items[${idx}].PendingQuantity" value="${item.pendingQuantity}" />
                                         <input type="hidden" name="Items[${idx}].UnitPrice" value="${item.unitPrice}" />
+                                        <input type="hidden" name="Items[${idx}].HsnCode" value="${item.hsnCode || ''}" />
                                         ${item.itemDescription}
                                     </td>
+                                    <td>${item.hsnCode || ''}</td>
                                     <td class="text-end">${item.orderedQuantity}</td>
                                     <td class="text-end">${item.previouslyInvoiced}</td>
                                     <td class="text-end">
@@ -244,7 +248,7 @@
                                     </td>
                                     <td>
                                         <input type="number" name="Items[${idx}].ThisInvoiceQuantity" 
-                                               class="form-control item-qty" min="0" max="${item.pendingQuantity}" 
+                                               class="form-control item-qty" min="0" max="${item.pendingQuantity}" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" 
                                                value="0" ${item.pendingQuantity === 0 ? 'disabled' : ''} />
                                     </td>
                                     <td class="text-end">₹${item.unitPrice.toFixed(2)}</td>
@@ -312,7 +316,7 @@
                 var val = parseInt($(this).val()) || 0;
                 if (val > max) {
                     $(this).val(max);
-                    alert('Quantity cannot exceed pending quantity (' + max + ')');
+                    toastr.warning('Quantity cannot exceed pending quantity (' + max + ')');
                 }
                 calculateTotal();
             });

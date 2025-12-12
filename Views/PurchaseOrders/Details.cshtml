@@ -14,9 +14,12 @@
             <a asp-action="DownloadPdf" asp-route-id="@Model.PoId" class="btn btn-primary me-2" target="_blank">
                 <i class="fas fa-file-pdf me-2"></i>Download PDF
             </a>
-            <a asp-action="Edit" asp-route-id="@Model.PoId" class="btn btn-light me-2">
-                <i class="fas fa-edit me-2"></i>Edit
-            </a>
+            @if (User.IsInRole("Admin"))
+            {
+                <a asp-action="Edit" asp-route-id="@Model.PoId" class="btn btn-light me-2">
+                    <i class="fas fa-edit me-2"></i>Edit
+                </a>
+            }
             <a asp-action="Index" class="btn btn-outline-light">
                 <i class="fas fa-arrow-left me-2"></i>Back
             </a>
@@ -95,6 +98,7 @@
                             <tr>
                                 <th>#</th>
                                 <th>Item Description</th>
+                                <th>HSN Code</th>
                                 <th class="text-end">Quantity</th>
                                 <th class="text-end">Unit Price</th>
                                 <th class="text-end">Line Total</th>
@@ -106,6 +110,7 @@
                                 <tr>
                                     <td>@item.LineNumber</td>
                                     <td>@item.ItemDescription</td>
+                                    <td>@item.HsnCode</td>
                                     <td class="text-end">@item.Quantity</td>
                                     <td class="text-end">₹@item.UnitPrice.ToString("N2")</td>
                                     <td class="text-end fw-bold">₹@item.LineTotal.ToString("N2")</td>
@@ -114,7 +119,7 @@
                         </tbody>
                         <tfoot class="table-light">
                             <tr>
-                                <th colspan="4" class="text-end">Total:</th>
+                                <th colspan="5" class="text-end">Total:</th>
                                 <th class="text-end text-primary fs-5">₹@Model.PoAmount.ToString("N2")</th>
                             </tr>
                         </tfoot>

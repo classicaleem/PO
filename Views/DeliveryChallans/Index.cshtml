@@ -8,10 +8,7 @@
     <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New DC</a>
 </div>
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
+
 
 <div class="card">
     <div class="card-body">
@@ -35,7 +32,10 @@
                         <td>@item.VehicleNo</td>
                         <td>
                             <a asp-action="DownloadPdf" asp-route-id="@item.DcId" class="btn btn-sm btn-info"><i class="fas fa-file-pdf"></i></a>
-                            <a asp-action="Delete" asp-route-id="@item.DcId" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <a asp-action="Delete" asp-route-id="@item.DcId" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                            }
                         </td>
                     </tr>
                 }

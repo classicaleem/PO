@@ -11,6 +11,9 @@ namespace HRPackage.Models.ViewModels
         [Display(Name = "Description")]
         public string ItemDescription { get; set; } = string.Empty;
 
+        [Display(Name = "HSN Code")]
+        public string HsnCode { get; set; } = string.Empty;
+
         [Display(Name = "Ordered")]
         public int OrderedQuantity { get; set; }
 

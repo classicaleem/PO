@@ -28,7 +28,8 @@
                             <th>PO Code</th>
                             <th>Customer</th>
                             <th>Date</th>
-                            <th>Amount</th>
+                            <th class="text-end">Total Qty</th>
+                            <th class="text-end">Amount</th>
                             <th>Status</th>
                             <th class="text-center">Actions</th>
                         </tr>
@@ -54,7 +55,10 @@
                                     }
                                 </td>
                                 <td>@invoice.InvoiceDate.ToString("MMM d, yyyy")</td>
-                                <td class="fw-semibold">₹@invoice.TotalAmount.ToString("N2")</td>
+                                <td class="text-end">
+                                    <span class="badge bg-light text-dark border">@invoice.TotalQuantity</span>
+                                </td>
+                                <td class="fw-semibold text-end">₹@invoice.GrandTotal.ToString("N2")</td>
                                 <td>
                                     @if (invoice.IsPaid)
                                     {
@@ -73,12 +77,18 @@
                                         <a asp-action="DownloadPdf" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-success" title="Download PDF">
                                             <i class="fas fa-file-pdf"></i>
                                         </a>
-                                        <a asp-action="Edit" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-primary" title="Edit">
-                                            <i class="fas fa-edit"></i>
-                                        </a>
-                                        <a asp-action="Delete" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-danger" title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </a>
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        }
+                                        @if (User.IsInRole("Admin"))
+                                        {
+                                            <a asp-action="Delete" asp-route-id="@invoice.InvoiceId" class="btn btn-sm btn-outline-danger" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
                                     </div>
                                 </td>
                             </tr>

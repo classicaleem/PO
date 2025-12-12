@@ -16,6 +16,7 @@ namespace HRPackage.Models
         public string? ShippingAddress { get; set; }
         public bool IsPaid { get; set; }
         public bool IsDeleted { get; set; }
+        public int TotalQuantity { get; set; }
 
         // Navigation/Display properties
         public string? PoNumber { get; set; }

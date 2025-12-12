@@ -41,7 +41,8 @@ namespace HRPackage.Repositories
                                p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
                                p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
                                u.Username as CreatedByUsername,
-                               c.CustomerName
+                               c.CustomerName,
+                               (SELECT ISNULL(SUM(Quantity), 0) FROM PurchaseOrderItems WHERE PoId = p.PoId AND IsDeleted = 0) as TotalQuantity
                         FROM PurchaseOrders p
                         LEFT JOIN Users u ON p.CreatedByUserId = u.UserId
                         LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
@@ -81,7 +82,7 @@ namespace HRPackage.Repositories
                         LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
                         WHERE p.PoId = @poId AND p.IsDeleted = 0;
 
-                        SELECT PoItemId, PoId, LineNumber, ItemDescription, Quantity, UnitPrice, LineTotal, IsDeleted
+                        SELECT PoItemId, PoId, LineNumber, ItemDescription, HsnCode, Quantity, UnitPrice, LineTotal, IsDeleted
                         FROM PurchaseOrderItems
                         WHERE PoId = @poId AND IsDeleted = 0
                         ORDER BY LineNumber";
@@ -91,6 +92,7 @@ namespace HRPackage.Repositories
             if (po != null)
             {
                 po.Items = (await multi.ReadAsync<PurchaseOrderItem>()).ToList();
+                po.TotalQuantity = po.Items.Sum(i => i.Quantity);
             }
             return po;
         }
@@ -110,7 +112,7 @@ namespace HRPackage.Repositories
                         LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
                         WHERE p.PoId = @poId AND p.IsDeleted = 0;
 
-                        SELECT PoItemId, PoId, LineNumber, ItemDescription, Quantity, UnitPrice, LineTotal, IsDeleted
+                        SELECT PoItemId, PoId, LineNumber, ItemDescription, HsnCode, Quantity, UnitPrice, LineTotal, IsDeleted
                         FROM PurchaseOrderItems
                         WHERE PoId = @poId AND IsDeleted = 0
                         ORDER BY LineNumber;
@@ -169,8 +171,8 @@ namespace HRPackage.Repositories
                 var poId = await connection.QuerySingleAsync<int>(poSql, po, transaction);
 
                 // Insert items
-                var itemSql = @"INSERT INTO PurchaseOrderItems (PoId, LineNumber, ItemDescription, Quantity, UnitPrice, LineTotal, IsDeleted)
-                                VALUES (@PoId, @LineNumber, @ItemDescription, @Quantity, @UnitPrice, @LineTotal, 0)";
+                var itemSql = @"INSERT INTO PurchaseOrderItems (PoId, LineNumber, ItemDescription, HsnCode, Quantity, UnitPrice, LineTotal, IsDeleted)
+                                VALUES (@PoId, @LineNumber, @ItemDescription, @HsnCode, @Quantity, @UnitPrice, @LineTotal, 0)";
                 
                 int lineNum = 1;
                 foreach (var item in items)
@@ -233,8 +235,8 @@ namespace HRPackage.Repositories
                 await connection.ExecuteAsync(deleteSql, new { po.PoId }, transaction);
 
                 // Insert new items
-                var itemSql = @"INSERT INTO PurchaseOrderItems (PoId, LineNumber, ItemDescription, Quantity, UnitPrice, LineTotal, IsDeleted)
-                                VALUES (@PoId, @LineNumber, @ItemDescription, @Quantity, @UnitPrice, @LineTotal, 0)";
+                var itemSql = @"INSERT INTO PurchaseOrderItems (PoId, LineNumber, ItemDescription, HsnCode, Quantity, UnitPrice, LineTotal, IsDeleted)
+                                VALUES (@PoId, @LineNumber, @ItemDescription, @HsnCode, @Quantity, @UnitPrice, @LineTotal, 0)";
                 
                 int lineNum = 1;
                 foreach (var item in items)
@@ -330,7 +332,7 @@ namespace HRPackage.Repositories
         public async Task<List<PurchaseOrderItem>> GetItemsWithPendingAsync(int poId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT poi.PoItemId, poi.PoId, poi.LineNumber, poi.ItemDescription, 
+            var sql = @"SELECT poi.PoItemId, poi.PoId, poi.LineNumber, poi.ItemDescription, poi.HsnCode,
                                poi.Quantity, poi.UnitPrice, poi.LineTotal, poi.IsDeleted,
                                ISNULL(SUM(ii.Quantity), 0) as InvoicedQuantity
                         FROM PurchaseOrderItems poi

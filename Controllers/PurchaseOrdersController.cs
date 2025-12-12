@@ -131,7 +131,8 @@ namespace HRPackage.Controllers
                 ItemDescription = i.ItemDescription,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
-                LineTotal = i.Quantity * i.UnitPrice
+                LineTotal = i.Quantity * i.UnitPrice,
+                HsnCode = i.HsnCode ?? ""
             }).ToList();
 
             await _purchaseOrdersRepository.CreateWithItemsAsync(purchaseOrder, items);
@@ -180,7 +181,8 @@ namespace HRPackage.Controllers
                     ItemDescription = i.ItemDescription,
                     Quantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    LineTotal = i.LineTotal
+                    LineTotal = i.LineTotal,
+                    HsnCode = i.HsnCode
                 }).ToList()
             };
 
@@ -258,7 +260,8 @@ namespace HRPackage.Controllers
                 ItemDescription = i.ItemDescription,
                 Quantity = i.Quantity,
                 UnitPrice = i.UnitPrice,
-                LineTotal = i.Quantity * i.UnitPrice
+                LineTotal = i.Quantity * i.UnitPrice,
+                HsnCode = i.HsnCode ?? ""
             }).ToList();
 
             await _purchaseOrdersRepository.UpdateWithItemsAsync(purchaseOrder, items);

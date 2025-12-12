@@ -29,3 +29,37 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+/* Excel-like Table Styles */
+.table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    background-color: transparent;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Excel-like font */
+    font-size: 0.85rem; /* Smaller font */
+}
+
+.table th, .table td {
+    padding: 0.25rem 0.5rem; /* Compact padding */
+    vertical-align: middle;
+    border: 1px solid #dee2e6; /* Grid lines */
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    color: #495057;
+    font-weight: 600;
+    text-align: center;
+}
+
+/* Ensure inputs in tables are also compact */
+.table .form-control, .table .form-select {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.85rem;
+    height: auto;
+    border-radius: 0; /* Excel-like sharp corners */
+}

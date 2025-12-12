@@ -146,11 +146,12 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width: 5%;">#</th>
-                            <th style="width: 40%;">Item Description *</th>
+                            <th style="width: 30%;">Item Description *</th>
+                            <th style="width: 15%;">HSN Code</th>
                             <th style="width: 15%;">Quantity *</th>
                             <th style="width: 15%;">Unit Price *</th>
                             <th style="width: 15%;">Line Total</th>
-                            <th style="width: 10%;">Action</th>
+                            <th style="width: 5%;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
@@ -166,8 +167,12 @@
                                            class="form-control item-description" />
                                 </td>
                                 <td>
+                                    <input type="text" name="Items[@i].HsnCode" value="@item.HsnCode" 
+                                           class="form-control item-hsn" maxlength="10" />
+                                </td>
+                                <td>
                                     <input type="number" name="Items[@i].Quantity" value="@item.Quantity" 
-                                           class="form-control item-quantity" min="1" />
+                                           class="form-control item-quantity" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" />
                                 </td>
                                 <td>
                                     <input type="number" name="Items[@i].UnitPrice" value="@item.UnitPrice" 
@@ -272,14 +277,14 @@
 
             $('#addItemBtn').on('click', function() {
                 var rowCount = $('#itemsBody tr.item-row').length;
-                if (rowCount >= 10) { alert('Maximum 10 items'); return; }
-                var newRow = `<tr class="item-row"><td class="text-center line-number">${rowCount+1}</td><td><input type="hidden" name="Items[${rowCount}].PoItemId" value="0" /><input type="hidden" name="Items[${rowCount}].LineNumber" value="${rowCount+1}" /><input type="text" name="Items[${rowCount}].ItemDescription" class="form-control item-description" /></td><td><input type="number" name="Items[${rowCount}].Quantity" class="form-control item-quantity" min="1" /></td><td><input type="number" name="Items[${rowCount}].UnitPrice" class="form-control item-price" min="0.01" step="0.01" /></td><td><input type="text" class="form-control item-total" value="0.00" readonly style="background-color:#e9ecef" /></td><td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-item-btn"><i class="fas fa-times"></i></button></td></tr>`;
+                if (rowCount >= 10) { toastr.warning('Maximum 10 items allowed per PO'); return; }
+                var newRow = `<tr class="item-row"><td class="text-center line-number">${rowCount+1}</td><td><input type="hidden" name="Items[${rowCount}].PoItemId" value="0" /><input type="hidden" name="Items[${rowCount}].LineNumber" value="${rowCount+1}" /><input type="text" name="Items[${rowCount}].ItemDescription" class="form-control item-description" /></td><td><input type="text" name="Items[${rowCount}].HsnCode" class="form-control item-hsn" maxlength="10" /></td><td><input type="number" name="Items[${rowCount}].Quantity" class="form-control item-quantity" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" /></td><td><input type="number" name="Items[${rowCount}].UnitPrice" class="form-control item-price" min="0.01" step="0.01" /></td><td><input type="text" class="form-control item-total" value="0.00" readonly style="background-color:#e9ecef" /></td><td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-item-btn"><i class="fas fa-times"></i></button></td></tr>`;
                 $('#itemsBody').append(newRow);
                 calculateTotals();
             });
 
             $(document).on('click', '.remove-item-btn', function() {
-                if ($('#itemsBody tr.item-row').length <= 1) { alert('At least one item required'); return; }
+                if ($('#itemsBody tr.item-row').length <= 1) { toastr.warning('At least one item required'); return; }
                 $(this).closest('tr').remove();
                 calculateTotals();
             });

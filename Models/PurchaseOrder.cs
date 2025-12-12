@@ -31,6 +31,6 @@ namespace HRPackage.Models
 
         // Computed for display
         public int TotalItems => Items?.Count ?? 0;
-        public int TotalQuantity => Items?.Sum(i => i.Quantity) ?? 0;
+        public int TotalQuantity { get; set; }
     }
 }

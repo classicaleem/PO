@@ -15,6 +15,10 @@ namespace HRPackage.Models.ViewModels
         [StringLength(200)]
         [Display(Name = "Item Description")]
         public string ItemDescription { get; set; } = string.Empty;
+        
+        [Display(Name = "HSN Code")]
+        [StringLength(10)]
+        public string HsnCode { get; set; } = string.Empty;
 
         [Required]
         [Range(1, 999999, ErrorMessage = "Quantity must be at least 1")]

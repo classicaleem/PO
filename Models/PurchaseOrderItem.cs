@@ -6,6 +6,7 @@ namespace HRPackage.Models
         public int PoId { get; set; }
         public int LineNumber { get; set; }
         public string ItemDescription { get; set; } = string.Empty;
+        public string HsnCode { get; set; } = string.Empty;
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal LineTotal { get; set; }

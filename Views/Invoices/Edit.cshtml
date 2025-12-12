@@ -82,7 +82,9 @@
                         <table class="table table-bordered mb-0">
                             <thead class="table-light">
                                 <tr>
+
                                     <th>Description</th>
+                                    <th>HSN Code</th>
                                     <th class="text-center">Qty</th>
                                     <th class="text-end">Unit Price</th>
                                     <th class="text-end">Total</th>
@@ -93,6 +95,7 @@
                                 {
                                     <tr>
                                         <td>@item.ItemDescription</td> <!-- Utilized mapped property -->
+                                        <td>@item.HsnCode</td>
                                         <td class="text-center">@item.ThisInvoiceQuantity</td>
                                         <td class="text-end">@item.UnitPrice.ToString("C2")</td>
                                         <td class="text-end">@item.LineAmount.ToString("C2")</td>

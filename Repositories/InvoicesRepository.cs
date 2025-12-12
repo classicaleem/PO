@@ -37,7 +37,8 @@ namespace HRPackage.Repositories
             var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
                                i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
-                               p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
+                               p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId,
+                               (SELECT ISNULL(SUM(Quantity), 0) FROM InvoiceItems WHERE InvoiceId = i.InvoiceId) as TotalQuantity
                         FROM Invoices i
                         INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
                         LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
@@ -86,7 +87,7 @@ namespace HRPackage.Repositories
                         WHERE i.InvoiceId = @invoiceId AND i.IsDeleted = 0;
 
                         SELECT ii.InvoiceItemId, ii.InvoiceId, ii.PoItemId, ii.Quantity, ii.UnitPrice, ii.LineAmount,
-                               poi.ItemDescription, poi.Quantity as OrderedQuantity
+                               poi.ItemDescription, poi.HsnCode, poi.Quantity as OrderedQuantity
                         FROM InvoiceItems ii
                         INNER JOIN PurchaseOrderItems poi ON ii.PoItemId = poi.PoItemId
                         WHERE ii.InvoiceId = @invoiceId";
@@ -96,6 +97,7 @@ namespace HRPackage.Repositories
             if (invoice != null)
             {
                 invoice.Items = (await multi.ReadAsync<InvoiceItem>()).ToList();
+                invoice.TotalQuantity = invoice.Items.Sum(i => i.Quantity);
             }
             return invoice;
         }
@@ -223,7 +225,7 @@ namespace HRPackage.Repositories
         public async Task<List<InvoiceItemViewModel>> GetPoItemsForInvoiceAsync(int poId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT poi.PoItemId, poi.ItemDescription, poi.Quantity as OrderedQuantity, 
+            var sql = @"SELECT poi.PoItemId, poi.ItemDescription, poi.HsnCode, poi.Quantity as OrderedQuantity, 
                                poi.UnitPrice,
                                ISNULL((
                                    SELECT SUM(ii.Quantity) 
@@ -241,6 +243,7 @@ namespace HRPackage.Repositories
             {
                 PoItemId = (int)i.PoItemId,
                 ItemDescription = (string)i.ItemDescription,
+                HsnCode = (string)i.HsnCode,
                 OrderedQuantity = (int)i.OrderedQuantity,
                 UnitPrice = (decimal)i.UnitPrice,
                 PreviouslyInvoiced = (int)i.PreviouslyInvoiced,
@@ -263,7 +266,7 @@ namespace HRPackage.Repositories
         {
             using var connection = _connectionFactory.CreateConnection();
             var sql = @"SELECT ii.InvoiceItemId, ii.InvoiceId, ii.PoItemId, ii.Quantity, ii.UnitPrice, ii.LineAmount,
-                               poi.ItemDescription
+                               poi.ItemDescription, poi.HsnCode
                         FROM InvoiceItems ii
                         INNER JOIN PurchaseOrderItems poi ON ii.PoItemId = poi.PoItemId
                         WHERE ii.InvoiceId = @invoiceId";

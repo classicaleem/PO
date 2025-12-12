@@ -143,11 +143,12 @@
                     <thead class="table-light">
                         <tr>
                             <th style="width: 5%;">#</th>
-                            <th style="width: 40%;">Item Description *</th>
+                            <th style="width: 30%;">Item Description *</th>
+                            <th style="width: 15%;">HSN Code</th>
                             <th style="width: 15%;">Quantity *</th>
                             <th style="width: 15%;">Unit Price *</th>
                             <th style="width: 15%;">Line Total</th>
-                            <th style="width: 10%;">Action</th>
+                            <th style="width: 5%;">Action</th>
                         </tr>
                     </thead>
                     <tbody id="itemsBody">
@@ -160,11 +161,15 @@
                                     <input type="hidden" name="Items[@i].PoItemId" value="@item.PoItemId" />
                                     <input type="hidden" name="Items[@i].LineNumber" value="@(i + 1)" />
                                     <input type="text" name="Items[@i].ItemDescription" value="@item.ItemDescription" 
-                                           class="form-control item-description" placeholder="Enter item description" />
+                                           class="form-control item-description" placeholder="Description" />
+                                </td>
+                                <td>
+                                    <input type="text" name="Items[@i].HsnCode" value="@item.HsnCode" 
+                                           class="form-control item-hsn" placeholder="HSN" maxlength="10" />
                                 </td>
                                 <td>
                                     <input type="number" name="Items[@i].Quantity" value="@(item.Quantity > 0 ? item.Quantity : "")" 
-                                           class="form-control item-quantity" min="1" placeholder="0" />
+                                           class="form-control item-quantity" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" />
                                 </td>
                                 <td>
                                     <input type="number" name="Items[@i].UnitPrice" value="@(item.UnitPrice > 0 ? item.UnitPrice : "")" 
@@ -295,7 +300,7 @@
             $('#addItemBtn').on('click', function() {
                 var rowCount = $('#itemsBody tr.item-row').length;
                 if (rowCount >= 10) {
-                    alert('Maximum 10 items allowed per PO');
+                    toastr.warning('Maximum 10 items allowed per PO');
                     return;
                 }
 
@@ -306,11 +311,15 @@
                             <input type="hidden" name="Items[${rowCount}].PoItemId" value="0" />
                             <input type="hidden" name="Items[${rowCount}].LineNumber" value="${rowCount + 1}" />
                             <input type="text" name="Items[${rowCount}].ItemDescription" 
-                                   class="form-control item-description" placeholder="Enter item description" />
+                                   class="form-control item-description" placeholder="Description" />
+                        </td>
+                        <td>
+                            <input type="text" name="Items[${rowCount}].HsnCode" 
+                                   class="form-control item-hsn" placeholder="HSN" maxlength="10" />
                         </td>
                         <td>
                             <input type="number" name="Items[${rowCount}].Quantity" 
-                                   class="form-control item-quantity" min="1" placeholder="0" />
+                                   class="form-control item-quantity" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" />
                         </td>
                         <td>
                             <input type="number" name="Items[${rowCount}].UnitPrice" 
@@ -335,7 +344,7 @@
             $(document).on('click', '.remove-item-btn', function() {
                 var rowCount = $('#itemsBody tr.item-row').length;
                 if (rowCount <= 1) {
-                    alert('At least one item is required');
+                    toastr.warning('At least one item is required');
                     return;
                 }
                 $(this).closest('tr').remove();

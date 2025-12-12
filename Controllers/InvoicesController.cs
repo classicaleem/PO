@@ -136,6 +136,7 @@ namespace HRPackage.Controllers
             var items = model.Items.Select(i => new InvoiceItem
             {
                 PoItemId = i.PoItemId,
+                HsnCode = i.HsnCode,
                 Quantity = i.ThisInvoiceQuantity,
                 UnitPrice = i.UnitPrice,
                 LineAmount = i.ThisInvoiceQuantity * i.UnitPrice
@@ -182,24 +183,13 @@ namespace HRPackage.Controllers
                 {
                     InvoiceItemId = i.InvoiceItemId,
                     PoItemId = i.PoItemId,
-                    // We need item description. GetByIdWithItemsAsync joins PurchaseOrderItems to get it.
-                    // The Repository logic maps poi.ItemDescription to dynamic, but implementation of GetByIdWithItemsAsync reads Items into InvoiceItem
-                    // We need to check if InvoiceItem model has ItemDescription. It probably does NOT.
-                    // Let's check the SQL in Repository.
-                    // Lines 87: poi.ItemDescription. 
-                    // InvoiceItem class needs to have ItemDescription property to hold it.
-                    // Assuming it does (similar to PO item logic), or we need to add it to InvoiceItem model first.
-                    // IMPORTANT: Determine if InvoiceItem has ItemDescription.
-                    // I'll assume for now I need to check InvoiceItem model.
-                    // For now, let's map what we have.
+                    ItemDescription = i.ItemDescription,
                     ThisInvoiceQuantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
-                    LineAmount = i.LineAmount
+                    LineAmount = i.LineAmount,
+                    HsnCode = i.HsnCode // Mapped from repository join
                 }).ToList() ?? new List<InvoiceItemViewModel>()
             };
-            
-            // Hack: Description is likely missing in InvoiceItem model. I need to check InvoiceItem.cs
-            // If it's missing, I should add it as [NotMapped] or Dapper result property.
             
             return View(model);
         }
@@ -335,6 +325,7 @@ namespace HRPackage.Controllers
                 items = items.Select(i => new {
                     poItemId = i.PoItemId,
                     itemDescription = i.ItemDescription,
+                    hsnCode = i.HsnCode,
                     orderedQuantity = i.OrderedQuantity,
                     previouslyInvoiced = i.PreviouslyInvoiced,
                     pendingQuantity = i.PendingQuantity,

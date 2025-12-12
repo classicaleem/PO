@@ -89,6 +89,9 @@ namespace HRPackage.Documents
                 {
                     columns.ConstantColumn(30);
                     columns.RelativeColumn(4);
+                    columns.ConstantColumn(30);
+                    columns.RelativeColumn(4);
+                    columns.RelativeColumn(2); // HSN
                     columns.RelativeColumn(2); // Qty
                     columns.RelativeColumn(2); // Unit Price
                     columns.RelativeColumn(2); // Line Total
@@ -98,6 +101,7 @@ namespace HRPackage.Documents
                 {
                     header.Cell().Element(CellStyle).Text("#");
                     header.Cell().Element(CellStyle).Text("Description");
+                    header.Cell().Element(CellStyle).Text("HSN Code");
                     header.Cell().Element(CellStyle).AlignRight().Text("Quantity");
                     header.Cell().Element(CellStyle).AlignRight().Text("Unit Price");
                     header.Cell().Element(CellStyle).AlignRight().Text("Total");
@@ -115,6 +119,7 @@ namespace HRPackage.Documents
                 {
                     table.Cell().Element(CellStyle).Text(i.ToString());
                     table.Cell().Element(CellStyle).Text(item.ItemDescription);
+                    table.Cell().Element(CellStyle).Text(item.HsnCode ?? "-");
                     table.Cell().Element(CellStyle).AlignRight().Text(item.Quantity.ToString());
                     table.Cell().Element(CellStyle).AlignRight().Text(item.UnitPrice.ToString("N2"));
                     table.Cell().Element(CellStyle).AlignRight().Text(item.LineTotal.ToString("N2"));

@@ -22,6 +22,9 @@
     <!-- AdminLTE 4 (Bootstrap 5) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@4.0.0-beta3/dist/css/adminlte.min.css">
     
+    <!-- Toastr -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+    
     <!-- Custom styles -->
     <style>
         :root {
@@ -200,21 +203,8 @@
         <main class="app-main">
             <div class="app-content">
                 <div class="container-fluid">
-                   <!-- Alert Messages -->
-                    @if (TempData["Success"] != null)
-                    {
-                        <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    }
+                    <!-- Toastr Notification Logic (Replaces Alerts) -->
+                    <!-- Page Content -->
                     
                     <!-- Page Content -->
                     <div class="py-3">
@@ -239,6 +229,28 @@
 
     <!-- Select2 -->
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+    <!-- Toastr -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            toastr.options = {
+                "closeButton": true,
+                "progressBar": true,
+                "positionClass": "toast-top-right",
+                "timeOut": "3000"
+            };
+
+            @if (TempData["Success"] != null)
+            {
+                <text>toastr.success('@TempData["Success"]');</text>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <text>toastr.error('@TempData["Error"]');</text>
+            }
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
