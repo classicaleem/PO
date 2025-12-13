@@ -37,40 +37,8 @@ namespace HRPackage.Services
             container.Column(column =>
             {
                 // Top Header Section (Boxed)
-                column.Item().Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.ConstantColumn(150); // Logo Section
-                        columns.RelativeColumn();    // Center Title
-                        columns.ConstantColumn(150); // Original Box
-                    });
-
-                    // Row 1: Logo | Title | Original
-                    table.Cell().RowSpan(2).Border(1).Padding(5).Element(cell => 
-                    {
-                        if(!string.IsNullOrEmpty(LogoPath) && File.Exists(LogoPath))
-                             cell.Image(LogoPath).FitArea();
-                        else
-                             cell.AlignMiddle().AlignCenter().Text("LOGO");
-                    });
-
-                    table.Cell().Border(1).AlignCenter().AlignMiddle().Text("INVOICE").FontSize(16).Bold();
-                    table.Cell().RowSpan(2).Border(1).AlignCenter().AlignMiddle().Text("Original for Recipient").FontSize(9);
-
-                    // Row 2: Empty/Spacer if needed or fused? 
-                    // Actually user layout has Title separate. 
-                    // Let's stick to 1 Row for Title/Original if height permits, or 2 rows.
-                    // Actually, let's use the Table approach from user request:
-                    // Col 1: Logo
-                    // Col 2: Invoice Title
-                    // Col 3: Original
-                    
-                    // Wait, the table structure I used in FastReport was:
-                    // LOGO is overlay. 
-                    // Table is Title | Original.
-                    // Here we can do better: Side-by-Side.
-                });
+                // Top Header Section (Boxed)
+                // (Removed Redundant Block)
 
                 // Let's redefine Header to match SIM exactly.
                 // 3 columns:
