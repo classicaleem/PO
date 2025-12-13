@@ -5,6 +5,8 @@ using HRPackage.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using HRPackage.Services;
 
 namespace HRPackage.Controllers
 {
@@ -13,18 +15,18 @@ namespace HRPackage.Controllers
     {
         private readonly IQuotationsRepository _quotationsRepository;
         private readonly ICustomersRepository _customersRepository;
-        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly IReportService _reportService;
         private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
         public QuotationsController(
             IQuotationsRepository quotationsRepository, 
             ICustomersRepository customersRepository,
-            HRPackage.Services.IPdfService pdfService,
+            IReportService reportService,
             Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _quotationsRepository = quotationsRepository;
             _customersRepository = customersRepository;
-            _pdfService = pdfService;
+            _reportService = reportService;
             _companySettings = companySettings;
         }
 
@@ -89,7 +91,7 @@ namespace HRPackage.Controllers
             var q = await _quotationsRepository.GetByIdAsync(id);
             if (q == null) return NotFound();
 
-            var pdfBytes = _pdfService.GenerateQuotationPdf(q, _companySettings.Value);
+            var pdfBytes = _reportService.GenerateQuotationPdf(q, _companySettings.Value);
             return File(pdfBytes, "application/pdf", $"Quotation_{q.QuotationNo}.pdf");
         }
 

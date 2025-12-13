@@ -2,6 +2,10 @@ using System.Security.Claims;
 using HRPackage.Models;
 using HRPackage.Models.ViewModels;
 using HRPackage.Repositories;
+using HRPackage.Models;
+using HRPackage.Models.ViewModels;
+using HRPackage.Repositories;
+using HRPackage.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,20 +17,20 @@ namespace HRPackage.Controllers
         private readonly IInvoicesRepository _invoicesRepository;
         private readonly IPurchaseOrdersRepository _purchaseOrdersRepository;
         private readonly ICustomersRepository _customersRepository;
-        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly IReportService _reportService;
         private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
         public InvoicesController(
             IInvoicesRepository invoicesRepository,
             IPurchaseOrdersRepository purchaseOrdersRepository,
             ICustomersRepository customersRepository,
-            HRPackage.Services.IPdfService pdfService,
+            IReportService reportService,
             Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _invoicesRepository = invoicesRepository;
             _purchaseOrdersRepository = purchaseOrdersRepository;
             _customersRepository = customersRepository;
-            _pdfService = pdfService;
+            _reportService = reportService;
             _companySettings = companySettings;
         }
 
@@ -291,7 +295,7 @@ namespace HRPackage.Controllers
                 invoice.Items = await _invoicesRepository.GetInvoiceItemsAsync(id);
             }
 
-            var pdfBytes = _pdfService.GenerateInvoicePdf(invoice, _companySettings.Value);
+            var pdfBytes = _reportService.GenerateInvoicePdf(invoice, _companySettings.Value);
             return File(pdfBytes, "application/pdf", $"Invoice_{invoice.InvoiceNumber}.pdf");
         }
 

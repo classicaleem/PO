@@ -1,10 +1,8 @@
 using HRPackage.Repositories;
 using HRPackage.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using QuestPDF.Infrastructure;
 
-// Set QuestPDF License
-QuestPDF.Settings.License = LicenseType.Community;
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +23,7 @@ builder.Services.AddScoped<IInvoicesRepository, InvoicesRepository>();
 builder.Services.AddScoped<IReportRepository, ReportRepository>();
 builder.Services.AddScoped<IDeliveryChallansRepository, DeliveryChallansRepository>();
 builder.Services.AddScoped<IQuotationsRepository, QuotationsRepository>();
-builder.Services.AddScoped<IPdfService, PdfService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 // Cookie Authentication
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

@@ -31,6 +31,7 @@ namespace HRPackage.Models.ViewModels
         public decimal SgstPercent { get; set; }
         public decimal IgstPercent { get; set; }
         public decimal TaxAmount { get; set; }
+        public decimal RoundOff { get; set; }
         public decimal GrandTotal { get; set; }
 
         [Required(ErrorMessage = "PO Date is required")]

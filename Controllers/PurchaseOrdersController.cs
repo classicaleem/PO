@@ -2,6 +2,10 @@ using System.Security.Claims;
 using HRPackage.Models;
 using HRPackage.Models.ViewModels;
 using HRPackage.Repositories;
+using HRPackage.Models;
+using HRPackage.Models.ViewModels;
+using HRPackage.Repositories;
+using HRPackage.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,18 +16,18 @@ namespace HRPackage.Controllers
     {
         private readonly IPurchaseOrdersRepository _purchaseOrdersRepository;
         private readonly ICustomersRepository _customersRepository;
-        private readonly HRPackage.Services.IPdfService _pdfService;
+        private readonly IReportService _reportService;
         private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
 
         public PurchaseOrdersController(
             IPurchaseOrdersRepository purchaseOrdersRepository,
             ICustomersRepository customersRepository,
-            HRPackage.Services.IPdfService pdfService,
+            IReportService reportService,
             Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
         {
             _purchaseOrdersRepository = purchaseOrdersRepository;
             _customersRepository = customersRepository;
-            _pdfService = pdfService;
+            _reportService = reportService;
             _companySettings = companySettings;
         }
 
@@ -301,7 +305,7 @@ namespace HRPackage.Controllers
                 purchaseOrder.Customer = await _customersRepository.GetByIdAsync(purchaseOrder.CustomerId.Value);
             }
 
-            var pdfBytes = _pdfService.GeneratePurchaseOrderPdf(purchaseOrder, _companySettings.Value);
+            var pdfBytes = _reportService.GeneratePurchaseOrderPdf(purchaseOrder, _companySettings.Value);
             return File(pdfBytes, "application/pdf", $"PO_{purchaseOrder.PoNumber}.pdf");
         }
 

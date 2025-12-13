@@ -38,13 +38,15 @@ body {
     color: #212529;
     background-color: transparent;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Excel-like font */
-    font-size: 0.85rem; /* Smaller font */
+    font-size: 0.8rem; /* Smaller font */
 }
 
 .table th, .table td {
-    padding: 0.25rem 0.5rem; /* Compact padding */
+    padding: 0.15rem 0.3rem !important; /* Aggressive Compact padding */
     vertical-align: middle;
     border: 1px solid #dee2e6; /* Grid lines */
+    font-size: 0.8rem !important;
+    white-space: nowrap; /* Prevent wrapping for density */
 }
 
 .table thead th {
@@ -58,8 +60,8 @@ body {
 
 /* Ensure inputs in tables are also compact */
 .table .form-control, .table .form-select {
-    padding: 0.2rem 0.4rem;
-    font-size: 0.85rem;
+    padding: 0.1rem 0.2rem;
+    font-size: 0.8rem;
     height: auto;
     border-radius: 0; /* Excel-like sharp corners */
 }

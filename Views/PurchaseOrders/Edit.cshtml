@@ -104,8 +104,12 @@
                         <span id="sgstAmount">₹@((Model.PoAmount * Model.SgstPercent / 100).ToString("N2"))</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
-                        <span>IGST (<span id="igstDisplay">@Model.IgstPercent</span>%):</span>
-                        <span id="igstAmount">₹@((Model.PoAmount * Model.IgstPercent / 100).ToString("N2"))</span>
+                        <span>IGST (<span id="igstDisplay">0</span>%):</span>
+                        <span id="igstAmount">₹0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
+                        <span>Round Off:</span>
+                        <span id="roundOffAmount">₹0.00</span>
                     </div>
                     <div class="d-flex justify-content-between align-items-center border-top pt-2">
                         <span class="h5 mb-0">Grand Total:</span>
@@ -117,6 +121,7 @@
                     <input type="hidden" asp-for="SgstPercent" id="sgstInput" />
                     <input type="hidden" asp-for="IgstPercent" id="igstInput" />
                     <input type="hidden" asp-for="TaxAmount" id="taxAmountInput" />
+                    <input type="hidden" asp-for="RoundOff" id="roundOffInput" />
                     <input type="hidden" asp-for="GrandTotal" id="grandTotalInput" />
                 </div>
             </div>
@@ -262,14 +267,18 @@
                 var sgstAmt = totalAmount * (sgst / 100);
                 var igstAmt = totalAmount * (igst / 100);
                 var totalTax = cgstAmt + sgstAmt + igstAmt;
-                var grandTotal = totalAmount + totalTax;
+                var totalWithTax = totalAmount + totalTax;
+                var grandTotal = Math.round(totalWithTax);
+                var roundOff = grandTotal - totalWithTax;
 
                 $('#cgstAmount').text('₹' + cgstAmt.toFixed(2));
                 $('#sgstAmount').text('₹' + sgstAmt.toFixed(2));
                 $('#igstAmount').text('₹' + igstAmt.toFixed(2));
+                $('#roundOffAmount').text('₹' + roundOff.toFixed(2));
                 $('#grandTotal').text('₹' + grandTotal.toFixed(2));
                 
                 $('#taxAmountInput').val(totalTax.toFixed(2));
+                $('#roundOffInput').val(roundOff.toFixed(2));
                 $('#grandTotalInput').val(grandTotal.toFixed(2));
             }
 
