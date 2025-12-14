@@ -20,6 +20,8 @@ namespace HRPackage.Repositories
         Task<List<InvoiceItemViewModel>> GetPoItemsForInvoiceAsync(int poId);
         Task<List<InvoiceItem>> GetInvoiceItemsAsync(int invoiceId);
         Task<string> GenerateNextInvoiceNumberAsync();
+        Task<(IEnumerable<Invoice> Items, int TotalCount, decimal TotalAmount, int TotalQuantity)> GetPagedAsync(int page, int pageSize, string searchTerm, DateTime? fromDate, DateTime? toDate);
+        Task<IEnumerable<Invoice>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
     }
 
     public class InvoicesRepository : IInvoicesRepository
@@ -272,6 +274,93 @@ namespace HRPackage.Repositories
                         WHERE ii.InvoiceId = @invoiceId";
             var items = await connection.QueryAsync<InvoiceItem>(sql, new { invoiceId });
             return items.ToList();
+        }
+        public async Task<(IEnumerable<Invoice> Items, int TotalCount, decimal TotalAmount, int TotalQuantity)> GetPagedAsync(int page, int pageSize, string searchTerm, DateTime? fromDate, DateTime? toDate)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            
+            var whereClause = "WHERE i.IsDeleted = 0 AND p.IsDeleted = 0";
+            var parameters = new DynamicParameters();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                whereClause += " AND (i.InvoiceNumber LIKE @SearchTerm OR p.PoNumber LIKE @SearchTerm OR p.InternalPoCode LIKE @SearchTerm OR c.CustomerName LIKE @SearchTerm OR CAST(i.TotalAmount AS NVARCHAR) LIKE @SearchTerm)";
+                parameters.Add("SearchTerm", $"%{searchTerm}%");
+            }
+
+            if (fromDate.HasValue)
+            {
+                whereClause += " AND i.InvoiceDate >= @FromDate";
+                parameters.Add("FromDate", fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                whereClause += " AND i.InvoiceDate <= @ToDate";
+                parameters.Add("ToDate", toDate.Value.Date.AddDays(1).AddTicks(-1));
+            }
+
+            // Count Query
+            var countSql = $@"SELECT COUNT(*) FROM Invoices i 
+                              INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                              LEFT JOIN Customers c ON p.CustomerId = c.CustomerId 
+                              {whereClause}";
+            var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
+
+            // Stats Query
+            var statsSql = $@"SELECT 
+                                ISNULL(SUM(i.GrandTotal), 0) as TotalAmount,
+                                (SELECT ISNULL(SUM(ii.Quantity), 0) 
+                                 FROM InvoiceItems ii 
+                                 JOIN Invoices i2 ON ii.InvoiceId = i2.InvoiceId   
+                                 INNER JOIN PurchaseOrders p2 ON i2.PoId = p2.PoId 
+                                 LEFT JOIN Customers c ON p2.CustomerId = c.CustomerId
+                                 {whereClause.Replace("i.", "i2.").Replace("p.", "p2.")} 
+                                ) as TotalQuantity
+                              FROM Invoices i
+                              INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                              LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                              {whereClause}";
+
+            var statsResult = await connection.QuerySingleAsync<dynamic>(statsSql, parameters);
+            decimal totalAmount = (decimal)statsResult.TotalAmount;
+            int totalQuantity = (int)statsResult.TotalQuantity;
+
+            // Paged Query
+            var sql = $@"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
+                               i.ShippingAddress, i.IsPaid, i.IsDeleted,
+                               p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId,
+                               (SELECT ISNULL(SUM(Quantity), 0) FROM InvoiceItems WHERE InvoiceId = i.InvoiceId) as TotalQuantity
+                        FROM Invoices i
+                        INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                        {whereClause}
+                        ORDER BY i.InvoiceDate DESC
+                        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+            parameters.Add("Offset", (page - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
+
+            var items = await connection.QueryAsync<Invoice>(sql, parameters);
+            return (items, totalCount, totalAmount, totalQuantity);
+        }
+
+        public async Task<IEnumerable<Invoice>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+                               i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
+                               i.ShippingAddress, i.IsPaid, i.IsDeleted,
+                               p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId,
+                               (SELECT ISNULL(SUM(Quantity), 0) FROM InvoiceItems WHERE InvoiceId = i.InvoiceId) as TotalQuantity
+                        FROM Invoices i
+                        INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                        WHERE i.IsDeleted = 0 AND p.IsDeleted = 0
+                        AND i.InvoiceDate >= @fromDate AND i.InvoiceDate <= @toDate
+                        ORDER BY i.InvoiceDate DESC";
+            return await connection.QueryAsync<Invoice>(sql, new { fromDate, toDate });
         }
     }
 }

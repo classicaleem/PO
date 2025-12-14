@@ -12,6 +12,7 @@ namespace HRPackage.Repositories
         Task<int> CreateAsync(Quotation quotation, List<QuotationItem> items);
         Task<string> GenerateNextQuotationNoAsync();
         Task<bool> SoftDeleteAsync(int id);
+        Task<IEnumerable<Quotation>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
     }
 
     public class QuotationsRepository : IQuotationsRepository
@@ -108,6 +109,22 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             var sql = "UPDATE Quotations SET IsDeleted = 1 WHERE QuotationId = @id";
             return await connection.ExecuteAsync(sql, new { id }) > 0;
+        }
+
+        public async Task<IEnumerable<Quotation>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT q.*, c.CustomerName 
+                        FROM Quotations q
+                        LEFT JOIN Customers c ON q.CustomerId = c.CustomerId
+                        WHERE q.IsDeleted = 0 
+                        AND q.Date >= @fromDate AND q.Date <= @toDate
+                        ORDER BY q.Date DESC";
+            return await connection.QueryAsync<Quotation, Customer, Quotation>(
+                sql, 
+                (q, c) => { q.Customer = c; return q; },
+                new { fromDate, toDate },
+                splitOn: "CustomerName");
         }
     }
 }

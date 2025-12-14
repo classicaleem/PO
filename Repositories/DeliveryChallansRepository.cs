@@ -12,6 +12,7 @@ namespace HRPackage.Repositories
         Task<int> CreateAsync(DeliveryChallan dc, List<DeliveryChallanItem> items);
         Task<string> GenerateNextDcNumberAsync();
         Task<bool> SoftDeleteAsync(int id);
+        Task<IEnumerable<DeliveryChallan>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
     }
 
     public class DeliveryChallansRepository : IDeliveryChallansRepository
@@ -110,6 +111,22 @@ namespace HRPackage.Repositories
             using var connection = _connectionFactory.CreateConnection();
             var sql = "UPDATE DeliveryChallans SET IsDeleted = 1 WHERE DcId = @id";
             return await connection.ExecuteAsync(sql, new { id }) > 0;
+        }
+
+        public async Task<IEnumerable<DeliveryChallan>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT dc.*, c.CustomerName 
+                        FROM DeliveryChallans dc
+                        LEFT JOIN Customers c ON dc.CustomerId = c.CustomerId
+                        WHERE dc.IsDeleted = 0
+                        AND dc.DcDate >= @fromDate AND dc.DcDate <= @toDate
+                        ORDER BY dc.DcDate DESC";
+            return await connection.QueryAsync<DeliveryChallan, Customer, DeliveryChallan>(
+                sql, 
+                (dc, c) => { dc.Customer = c; return dc; },
+                new { fromDate, toDate },
+                splitOn: "CustomerName");
         }
     }
 }

@@ -22,6 +22,8 @@ namespace HRPackage.Repositories
         Task<List<SelectListItem>> GetDropdownListAsync();
         Task<List<PurchaseOrderItem>> GetItemsWithPendingAsync(int poId);
         Task<bool> UpdateCompletionStatusAsync(int poId);
+        Task<(IEnumerable<PurchaseOrder> Items, int TotalCount, decimal TotalAmount, int TotalQuantity)> GetPagedAsync(int page, int pageSize, string searchTerm, DateTime? fromDate, DateTime? toDate);
+        Task<IEnumerable<PurchaseOrder>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
     }
 
     public class PurchaseOrdersRepository : IPurchaseOrdersRepository
@@ -369,6 +371,106 @@ namespace HRPackage.Repositories
             await connection.ExecuteAsync(updateSql, new { poId, isComplete });
             
             return isComplete;
+        }
+        public async Task<(IEnumerable<PurchaseOrder> Items, int TotalCount, decimal TotalAmount, int TotalQuantity)> GetPagedAsync(int page, int pageSize, string searchTerm, DateTime? fromDate, DateTime? toDate)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            
+            var whereClause = "WHERE p.IsDeleted = 0";
+            var parameters = new DynamicParameters();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                whereClause += " AND (p.PoNumber LIKE @SearchTerm OR p.InternalPoCode LIKE @SearchTerm OR c.CustomerName LIKE @SearchTerm OR CAST(p.PoAmount AS NVARCHAR) LIKE @SearchTerm)";
+                parameters.Add("SearchTerm", $"%{searchTerm}%");
+            }
+
+            if (fromDate.HasValue)
+            {
+                whereClause += " AND p.PoDate >= @FromDate";
+                parameters.Add("FromDate", fromDate.Value.Date);
+            }
+
+            if (toDate.HasValue)
+            {
+                whereClause += " AND p.PoDate <= @ToDate";
+                parameters.Add("ToDate", toDate.Value.Date.AddDays(1).AddTicks(-1)); // End of day
+            }
+
+            // Count Query
+            var countSql = $@"SELECT COUNT(*) FROM PurchaseOrders p 
+                              LEFT JOIN Customers c ON p.CustomerId = c.CustomerId 
+                              {whereClause}";
+            var totalCount = await connection.ExecuteScalarAsync<int>(countSql, parameters);
+
+            // Stats Query (Total Amount & Quantity for filtered set)
+            // Note: Total Quantity requires joining Items, potentially heavy. 
+            // Simplified: Just Amount for now if items join is too slow. 
+            // Or optimized: Subquery.
+            // Let's include Quantity via subquery sum.
+            var statsSql = $@"SELECT 
+                                ISNULL(SUM(p.PoAmount), 0) as TotalAmount,
+                                (SELECT ISNULL(SUM(pi.Quantity), 0) 
+                                 FROM PurchaseOrderItems pi 
+                                 JOIN PurchaseOrders p2 ON pi.PoId = p2.PoId
+                                 LEFT JOIN Customers c ON p2.CustomerId = c.CustomerId
+                                 {whereClause.Replace("p.", "p2.")} 
+                                 AND pi.IsDeleted = 0) as TotalQuantity
+                              FROM PurchaseOrders p
+                              LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                              {whereClause}";
+            
+            // Actually, re-using whereClause for subquery is tricky due to alias 'p'. 
+            // Let's do a simpler approach for Stats: Single pass if possible? 
+            // Separate query for now to be safe.
+            // Optimizing: Just SUM(PoAmount) on main table. Quantity might be expensive. User requested "Total Quantity on Index".
+            // Let's try efficient join for stats.
+            var statsResult = await connection.QuerySingleAsync<dynamic>(statsSql, parameters);
+            decimal totalAmount = (decimal)statsResult.TotalAmount;
+            int totalQuantity = (int)statsResult.TotalQuantity;
+
+
+            // Paged Data Query
+            var sql = $@"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.RoundOff, p.GrandTotal,
+                               p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
+                               p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
+                               u.Username as CreatedByUsername,
+                               c.CustomerName,
+                               (SELECT ISNULL(SUM(Quantity), 0) FROM PurchaseOrderItems WHERE PoId = p.PoId AND IsDeleted = 0) as TotalQuantity
+                        FROM PurchaseOrders p
+                        LEFT JOIN Users u ON p.CreatedByUserId = u.UserId
+                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                        {whereClause}
+                        ORDER BY p.CreatedDate DESC
+                        OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+            parameters.Add("Offset", (page - 1) * pageSize);
+            parameters.Add("PageSize", pageSize);
+
+            var items = await connection.QueryAsync<PurchaseOrder>(sql, parameters);
+            
+            return (items, totalCount, totalAmount, totalQuantity);
+        }
+
+        public async Task<IEnumerable<PurchaseOrder>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId, p.SupplierName, 
+                               p.PoAmount, p.CgstPercent, p.SgstPercent, p.IgstPercent, p.TaxAmount, p.RoundOff, p.GrandTotal,
+                               p.PoDate, p.StartDate, p.EndDate, p.CreatedDate, 
+                               p.CreatedByUserId, p.IsCompleted, p.IsDeleted, 
+                               u.Username as CreatedByUsername,
+                               c.CustomerName,
+                               (SELECT ISNULL(SUM(Quantity), 0) FROM PurchaseOrderItems WHERE PoId = p.PoId AND IsDeleted = 0) as TotalQuantity
+                        FROM PurchaseOrders p
+                        LEFT JOIN Users u ON p.CreatedByUserId = u.UserId
+                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                        WHERE p.IsDeleted = 0 
+                        AND p.PoDate >= @fromDate AND p.PoDate <= @toDate
+                        ORDER BY p.CreatedDate DESC";
+            
+            return await connection.QueryAsync<PurchaseOrder>(sql, new { fromDate, toDate });
         }
     }
 }

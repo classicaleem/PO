@@ -1,47 +1,165 @@
-@model IEnumerable<Quotation>
 @{
     ViewData["Title"] = "Quotations";
 }
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Quotations</h1>
-    <a asp-action="Create" class="btn btn-primary"><i class="fas fa-plus"></i> New Quotation</a>
-</div>
+<link rel="stylesheet" href="~/css/vendor/ag-grid.css" />
+<link rel="stylesheet" href="~/css/vendor/ag-theme-alpine.css" />
 
-
-
-<div class="card">
-    <div class="card-body">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Quotation No</th>
-                    <th>Date</th>
-                    <th>Customer</th>
-                    <th>Valid Until</th>
-                    <th>Total Amt</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach(var item in Model)
-                {
-                    <tr>
-                        <td>@item.QuotationNo</td>
-                        <td>@item.Date.ToString("dd-MMM-yyyy")</td>
-                        <td>@(item.Customer?.CustomerName ?? "-")</td>
-                        <td>@(item.ValidUntil?.ToString("dd-MMM-yyyy") ?? "-")</td>
-                        <td>@item.TotalAmount.ToString("N2")</td>
-                        <td>
-                            <a asp-action="DownloadPdf" asp-route-id="@item.QuotationId" class="btn btn-sm btn-info"><i class="fas fa-file-pdf"></i></a>
-                            @if (User.IsInRole("Admin"))
-                            {
-                                <a asp-action="Delete" asp-route-id="@item.QuotationId" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
-                            }
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
+<!-- Compact Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+    <div>
+        <h5 class="mb-0 text-primary"><i class="fas fa-file-invoice me-2"></i>Quotations</h5>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-sm btn-primary">
+            <i class="fas fa-plus me-1"></i>New Quotation
+        </a>
     </div>
 </div>
+
+<!-- Filters & Grid -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-2 bg-light border-bottom">
+        <div class="row g-2 align-items-center">
+            <div class="col-md-2">
+                <label class="form-label small fw-bold mb-0">From Date</label>
+                <input type="date" id="fromDate" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-bold mb-0">To Date</label>
+                <input type="date" id="toDate" class="form-control form-control-sm" />
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button onclick="loadData()" class="btn btn-sm btn-secondary w-100" style="margin-top: 20px;">
+                    <i class="fas fa-sync-alt me-1"></i>Load Data
+                </button>
+            </div>
+            <div class="col-md-6 d-flex justify-content-end align-items-end">
+                <input type="text" id="quickFilter" oninput="onQuickFilterChanged()" class="form-control form-control-sm w-50" placeholder="Global Search..." />
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div id="myGrid" class="ag-theme-alpine" style="height: 600px; width: 100%;"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/vendor/ag-grid-community.min.js"></script>
+    <script>
+        let gridApi;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const lastWeek = new Date();
+            lastWeek.setDate(today.getDate() - 7);
+            
+            document.getElementById('toDate').valueAsDate = today;
+            document.getElementById('fromDate').valueAsDate = lastWeek;
+
+            loadData();
+        });
+
+        const gridOptions = {
+            columnDefs: [
+                { field: "quotationNo", headerName: "Quotation No", width: 160, filter: 'agTextColumnFilter', sortable: true },
+                { 
+                    field: "date", 
+                    headerName: "Date", 
+                    width: 130, 
+                    sortable: true,
+                    valueFormatter: params => {
+                        if (!params.value) return '';
+                        const date = new Date(params.value);
+                        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    }
+                },
+                { 
+                    headerName: "Customer", 
+                    width: 250, 
+                    filter: 'agTextColumnFilter', 
+                    sortable: true,
+                    valueGetter: params => params.data.customer ? params.data.customer.customerName : "-",
+                    cellRenderer: params => `<span class="fw-bold text-dark">${params.value}</span>`
+                },
+                { 
+                    field: "validUntil", 
+                    headerName: "Valid Until", 
+                    width: 130, 
+                    sortable: true,
+                    valueFormatter: params => {
+                        if (!params.value) return '-';
+                        const date = new Date(params.value);
+                        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+                    }
+                },
+                { 
+                    field: "totalAmount", 
+                    headerName: "Total Amount", 
+                    width: 150, 
+                    type: 'numericColumn', 
+                    sortable: true,
+                    valueFormatter: params => '₹' + params.value.toLocaleString('en-IN', { minimumFractionDigits: 2 }),
+                    cellStyle: { fontWeight: 'bold' } 
+                },
+                {
+                    headerName: "Actions",
+                    width: 150,
+                    cellRenderer: params => {
+                        const id = params.data.quotationId;
+                        let buttons = `
+                            <div class="btn-group btn-group-sm">
+                                <a href="/Quotations/DownloadPdf/${id}" class="btn btn-outline-info btn-sm p-1" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                        `;
+                        
+                        const isAdmin = @(User.IsInRole("Admin").ToString().ToLower());
+                        
+                        if (isAdmin) {
+                            buttons += `
+                                <a href="/Quotations/Delete/${id}" class="btn btn-outline-danger btn-sm p-1" title="Delete" onclick="return confirm('Are you sure?')"><i class="fas fa-trash"></i></a>
+                            `;
+                        }
+                        buttons += `</div>`;
+                        return buttons;
+                    }
+                }
+            ],
+            defaultColDef: {
+                resizable: true,
+            },
+            pagination: true,
+            paginationPageSize: 10,
+            paginationPageSizeSelectors: [10, 25, 100],
+            rowHeight: 40, 
+            headerHeight: 40,
+            animateRows: true,
+            rowSelection: 'multiple',
+        };
+
+        const gridDiv = document.querySelector('#myGrid');
+        gridApi = agGrid.createGrid(gridDiv, gridOptions);
+
+        function loadData() {
+            const from = document.getElementById('fromDate').value;
+            const to = document.getElementById('toDate').value;
+            
+            if(gridApi) {
+                gridApi.showLoadingOverlay();
+            }
+
+            fetch(`/Quotations/GetQuotationsJson?fromDate=${from}&toDate=${to}`)
+                .then(response => response.json())
+                .then(data => {
+                    gridApi.setGridOption('rowData', data);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    gridApi.setGridOption('rowData', []);
+                });
+        }
+
+        function onQuickFilterChanged() {
+            gridApi.setGridOption('quickFilterText', document.getElementById('quickFilter').value);
+        }
+    </script>
+}

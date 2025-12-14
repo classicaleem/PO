@@ -34,10 +34,25 @@ namespace HRPackage.Controllers
             _companySettings = companySettings;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, string searchTerm = "", DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var invoices = await _invoicesRepository.GetAllAsync();
-            return View(invoices);
+            int pageSize = 20;
+            var (items, totalCount, totalAmount, totalQuantity) = await _invoicesRepository.GetPagedAsync(page, pageSize, searchTerm, fromDate, toDate);
+
+            var viewModel = new PagedViewModel<Invoice>
+            {
+                Items = items,
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                FromDate = fromDate,
+                ToDate = toDate,
+                TotalAmount = totalAmount,
+                TotalQuantity = totalQuantity
+            };
+            
+            return View(viewModel);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -297,6 +312,17 @@ namespace HRPackage.Controllers
 
             var pdfBytes = _reportService.GenerateInvoicePdf(invoice, _companySettings.Value);
             return File(pdfBytes, "application/pdf", $"Invoice_{invoice.InvoiceNumber}.pdf");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetInvoicesJson(DateTime? fromDate, DateTime? toDate)
+        {
+            var end = toDate ?? DateTime.Today;
+            var start = fromDate ?? DateTime.Today.AddDays(-7);
+            var endOfDay = end.Date.AddDays(1).AddTicks(-1);
+
+            var invoices = await _invoicesRepository.GetByDateRangeAsync(start, endOfDay);
+            return Json(invoices);
         }
 
         [HttpGet]

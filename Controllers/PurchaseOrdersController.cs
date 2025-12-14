@@ -31,10 +31,25 @@ namespace HRPackage.Controllers
             _companySettings = companySettings;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, string searchTerm = "", DateTime? fromDate = null, DateTime? toDate = null)
         {
-            var purchaseOrders = await _purchaseOrdersRepository.GetAllAsync();
-            return View(purchaseOrders);
+            int pageSize = 20; // Configurable or hardcoded for now
+            var (items, totalCount, totalAmount, totalQuantity) = await _purchaseOrdersRepository.GetPagedAsync(page, pageSize, searchTerm, fromDate, toDate);
+
+            var viewModel = new PagedViewModel<PurchaseOrder>
+            {
+                Items = items,
+                PageNumber = page,
+                PageSize = pageSize,
+                TotalCount = totalCount,
+                SearchTerm = searchTerm,
+                FromDate = fromDate,
+                ToDate = toDate,
+                TotalAmount = totalAmount,
+                TotalQuantity = totalQuantity
+            };
+            
+            return View(viewModel);
         }
 
         public async Task<IActionResult> Details(int id)
@@ -307,6 +322,26 @@ namespace HRPackage.Controllers
 
             var pdfBytes = _reportService.GeneratePurchaseOrderPdf(purchaseOrder, _companySettings.Value);
             return File(pdfBytes, "application/pdf", $"PO_{purchaseOrder.PoNumber}.pdf");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPurchaseOrdersJson(DateTime? fromDate, DateTime? toDate)
+        {
+            // Default to last 7 days if not provided
+            var end = toDate ?? DateTime.Today;
+            var start = fromDate ?? DateTime.Today.AddDays(-7);
+
+            // Ensure logic handles "End of Day" for the To Date if needed, 
+            // but repository usually compares >= / <=. If it's just Date part, <= Date works if time is 00:00.
+            // But if DB has time, we need to handle it. Repository logic: p.PoDate <= @ToDate
+            // Let's pass precise boundaries here to be safe, or let Repo handle.
+            // Repo has: AND p.PoDate >= @fromDate AND p.PoDate <= @toDate
+            
+            // Adjust to end of day for 'toDate' to catch everything on that day
+            var endOfDay = end.Date.AddDays(1).AddTicks(-1);
+            
+            var purchaseOrders = await _purchaseOrdersRepository.GetByDateRangeAsync(start, endOfDay);
+            return Json(purchaseOrders);
         }
 
 

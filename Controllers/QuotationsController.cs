@@ -32,8 +32,18 @@ namespace HRPackage.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var list = await _quotationsRepository.GetAllAsync();
-            return View(list);
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetQuotationsJson(DateTime? fromDate, DateTime? toDate)
+        {
+            var end = toDate ?? DateTime.Today;
+            var start = fromDate ?? DateTime.Today.AddDays(-7);
+            var endOfDay = end.Date.AddDays(1).AddTicks(-1);
+
+            var list = await _quotationsRepository.GetByDateRangeAsync(start, endOfDay);
+            return Json(list);
         }
 
         public async Task<IActionResult> Create()
