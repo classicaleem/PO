@@ -19,6 +19,9 @@ namespace HRPackage.Models.ViewModels
         public decimal Igst { get; set; }
         public decimal RoundOff { get; set; }
         public decimal TotalAmount { get; set; }
+        public decimal CgstPercent { get; set; }
+        public decimal SgstPercent { get; set; }
+        public decimal IgstPercent { get; set; }
         public string GstStatus { get; set; } = "Approve";
         public string PaymentStatus { get; set; } = "Pending";
         public bool IsPaid { get; set; }

@@ -5,7 +5,6 @@ using HRPackage.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using HRPackage.Services;
 
 namespace HRPackage.Controllers
