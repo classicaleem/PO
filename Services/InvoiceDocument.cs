@@ -222,6 +222,19 @@ namespace HRPackage.Services
                          r.RelativeItem().AlignRight().Text(InvoiceModel.GrandTotal.ToString("N2")).Bold().FontSize(10);
                      });
                 });
+                
+                // Declaration & Signatures (Moved from Footer to join borders)
+                column.Item().Border(1).BorderTop(0).Padding(5).Text("Declaration\nWe declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.").FontSize(8);
+                  
+                column.Item().Border(1).BorderTop(0).Row(row => 
+                {
+                    row.RelativeItem().BorderRight(1).Height(85).Padding(5).AlignBottom().AlignCenter().Text("Customer's Seal and Signature").Bold().FontSize(9);
+                    row.RelativeItem().Height(85).Padding(5).Column(col => 
+                    {
+                        col.Item().AlignRight().Text($"For {Company.Name}").Bold().FontSize(9);
+                        col.Item().PaddingTop(30).AlignRight().Text("Authorised Signature").Bold().FontSize(9);
+                    });
+                });
             });
         }
 
@@ -229,18 +242,6 @@ namespace HRPackage.Services
         {
             container.Column(c =>
             {
-                 c.Item().Border(1).Padding(5).Text("Declaration\nWe declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.").FontSize(8);
-                 
-                 c.Item().Border(1).BorderTop(0).Row(row => 
-                 {
-                     row.RelativeItem().BorderRight(1).Height(85).Padding(5).AlignBottom().AlignCenter().Text("Customer's Seal and Signature").Bold().FontSize(9);
-                     row.RelativeItem().Height(85).Padding(5).Column(col => 
-                     {
-                         col.Item().AlignRight().Text($"For {Company.Name}").Bold().FontSize(9);
-                         col.Item().PaddingTop(30).AlignRight().Text("Authorised Signature").Bold().FontSize(9);
-                     });
-                 });
-                 
                  c.Item().PaddingTop(5).AlignCenter().Text("This is a Computer Generated Invoice").FontSize(8).FontColor(Colors.Grey.Medium);
             });
         }
