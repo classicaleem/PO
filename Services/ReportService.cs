@@ -317,135 +317,17 @@ namespace HRPackage.Services
 
         public byte[] GenerateDeliveryChallanPdf(DeliveryChallan dc, CompanySettings company)
         {
-            string reportPath = Path.Combine(_env.WebRootPath, "reports", "DeliveryChallan.frx");
-            if (File.Exists(reportPath))
+            try
             {
-                 using var customReport = new Report();
-                 customReport.Load(reportPath);
-                 customReport.RegisterData(new[] { dc }, "DeliveryChallan");
-                 customReport.RegisterData(dc.Items, "DcItems");
-                 customReport.RegisterData(new[] { company }, "Company");
-                 customReport.Prepare();
-                 using var customMs = new MemoryStream();
-                 var customPdfExport = new PDFSimpleExport();
-                 customPdfExport.Export(customReport, customMs);
-                 return customMs.ToArray();
+                 // QuestPDF logic
+                 string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+                 var document = new DeliveryChallanDocument(dc, company, logoPath);
+                 return document.GeneratePdf();
             }
-
-            using var report = new Report();
-            var page = new ReportPage();
-            report.Pages.Add(page);
-
-            // Watermark
-            // Watermark
-            string watermarkPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
-            if (File.Exists(watermarkPath))
+            catch(Exception ex)
             {
-                page.Watermark.Image = new Bitmap(watermarkPath);
-                page.Watermark.Enabled = true;
-                page.Watermark.ShowImageOnTop = false; // Background
-                // page.Watermark.ImageTransparency = 0.8f; 
+                throw;
             }
-            float pageWidth = page.PaperWidth - page.LeftMargin - page.RightMargin;
-
-            // Header
-            var reportTitle = new ReportTitleBand { Height = Units.Millimeters * 40 };
-            page.ReportTitle = reportTitle;
-
-            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
-            if (File.Exists(logoPath))
-            {
-                reportTitle.Objects.Add(new PictureObject
-                {
-                    Image = new Bitmap(logoPath),
-                    Bounds = new RectangleF(0, 0, Units.Millimeters * 25, Units.Millimeters * 25),
-                        // SizeMode = FastReport.PictureBoxSizeMode.Zoom
-                });
-            }
-
-            reportTitle.Objects.Add(new TextObject
-            {
-                Bounds = new RectangleF(Units.Millimeters * 30, 0, pageWidth - Units.Millimeters * 30, Units.Millimeters * 10),
-                Text = "DELIVERY CHALLAN",
-                HorzAlign = HorzAlign.Center,
-                Font = new Font("Arial", 18, FontStyle.Bold)
-            });
-
-            reportTitle.Objects.Add(new TextObject
-            {
-                Bounds = new RectangleF(Units.Millimeters * 30, Units.Millimeters * 12, Units.Millimeters * 80, Units.Millimeters * 20),
-                Text = $"{company.Name}\n{company.AddressLine1}\n{company.AddressLine2}\nGST: {company.GstNumber}",
-                Font = new Font("Arial", 9)
-            });
-
-            reportTitle.Objects.Add(new TextObject
-            {
-                Bounds = new RectangleF(Units.Millimeters * 120, Units.Millimeters * 12, Units.Millimeters * 70, Units.Millimeters * 20),
-                Text = $"DC No: {dc.DcNumber}\nDate: {dc.DcDate:dd-MMM-yyyy}\nVehicle: {dc.VehicleNo}",
-                HorzAlign = HorzAlign.Right,
-                Font = new Font("Arial", 9)
-            });
-
-            // Target Company / Customer
-            var customerInfo = new TextObject
-            {
-                Bounds = new RectangleF(0, Units.Millimeters * 35, pageWidth, Units.Millimeters * 10),
-                Text = $"To: {dc.TargetCompany ?? dc.Customer?.CustomerName}",
-                Font = new Font("Arial", 10, FontStyle.Bold),
-                Border = { Lines = BorderLines.Bottom }
-            };
-            reportTitle.Objects.Add(customerInfo);
-
-
-            // Items
-            var dataBand = new DataBand();
-            page.Bands.Add(dataBand);
-            var headerBand = new PageHeaderBand { Height = Units.Millimeters * 8 };
-            page.PageHeader = headerBand;
-
-            float[] colWidths = new float[] { 10, 80, 20, 20, 60 };
-            string[] headers = new string[] { "#", "Description", "Qty", "Unit", "Remarks" };
-            float curX = 0;
-            for (int i = 0; i < 5; i++)
-            {
-                CreateText(headerBand, headers[i], curX, colWidths[i], (i == 2) ? HorzAlign.Right : HorzAlign.Left)
-                    .Font = new Font("Arial", 9, FontStyle.Bold);
-                curX += colWidths[i];
-            }
-
-            report.RegisterData(dc.Items, "DcItems");
-            var dcItemsDs = report.GetDataSource("DcItems");
-            if (dcItemsDs != null)
-            {
-                dcItemsDs.Enabled = true;
-                EnableAll(dcItemsDs);
-                dataBand.DataSource = dcItemsDs;
-            }
-            dataBand.Height = Units.Millimeters * 6;
-
-            curX = 0;
-            CreateText(dataBand, "[Row#]", curX, colWidths[0], HorzAlign.Center); curX += colWidths[0];
-            CreateText(dataBand, "[DcItems.Description]", curX, colWidths[1], HorzAlign.Left); curX += colWidths[1];
-            CreateText(dataBand, "[DcItems.Quantity]", curX, colWidths[2], HorzAlign.Right); curX += colWidths[2];
-            CreateText(dataBand, "[DcItems.Unit]", curX, colWidths[3], HorzAlign.Center); curX += colWidths[3];
-            CreateText(dataBand, "[DcItems.Remarks]", curX, colWidths[4], HorzAlign.Left);
-
-            report.Prepare();
-            using var ms = new MemoryStream();
-            new PDFSimpleExport().Export(report, ms);
-            return ms.ToArray();
-        }
-        private TextObject CreateText(BandBase band, string text, float x, float width, HorzAlign align)
-        {
-            var t = new TextObject();
-            t.Bounds = new RectangleF(Units.Millimeters * x, 0, Units.Millimeters * width, Units.Millimeters * 6);
-            t.Text = text;
-            t.HorzAlign = align;
-            t.VertAlign = VertAlign.Center;
-            t.Border.Lines = BorderLines.All;
-            t.Font = new Font("Arial", 9);
-            band.Objects.Add(t);
-            return t;
         }
 
         private void AddSummaryRow(BandBase band, string label, decimal val, float x, float y, float width)
@@ -464,6 +346,21 @@ namespace HRPackage.Services
             v.Font = new Font("Arial", 9);
             band.Objects.Add(v);
         }
+
+        private TextObject CreateText(BandBase band, string text, float x, float width, HorzAlign align)
+        {
+            var t = new TextObject();
+            t.Bounds = new RectangleF(Units.Millimeters * x, 0, Units.Millimeters * width, Units.Millimeters * 6);
+            t.Text = text;
+            t.HorzAlign = align;
+            t.VertAlign = VertAlign.Center;
+            t.Border.Lines = BorderLines.All;
+            t.Font = new Font("Arial", 9);
+            band.Objects.Add(t);
+            return t;
+        }
+
+
 
         private void RegisterAndEnable(Report report, System.Collections.IEnumerable data, string name)
         {
