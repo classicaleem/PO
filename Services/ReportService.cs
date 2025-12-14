@@ -300,120 +300,19 @@ namespace HRPackage.Services
 
         public byte[] GenerateQuotationPdf(Quotation quotation, CompanySettings company)
         {
-            string reportPath = Path.Combine(_env.WebRootPath, "reports", "Quotation.frx");
-            if (File.Exists(reportPath))
+            try 
             {
-                 using var customReport = new Report();
-                 customReport.Load(reportPath);
-                 customReport.RegisterData(new[] { quotation }, "Quotation");
-                 customReport.RegisterData(quotation.Items, "QItems");
-                 customReport.RegisterData(new[] { company }, "Company");
-                 customReport.Prepare();
-                 using var customMs = new MemoryStream();
-                 var customPdfExport = new PDFSimpleExport();
-                 customPdfExport.Export(customReport, customMs);
-                 return customMs.ToArray();
+                 // QuestPDF
+                 string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+                 var document = new QuotationDocument(quotation, company, logoPath);
+                 return document.GeneratePdf();
             }
-
-            using var report = new Report();
-            var page = new ReportPage();
-            report.Pages.Add(page);
-
-            // Watermark
-            // Watermark
-            string watermarkPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
-            if (File.Exists(watermarkPath))
+            catch(Exception ex)
             {
-                page.Watermark.Image = new Bitmap(watermarkPath);
-                page.Watermark.Enabled = true;
-                page.Watermark.ShowImageOnTop = false; // Background
-                // page.Watermark.ImageTransparency = 0.8f; 
+                // Fallback or Log? 
+                // For now, simple standard error logging could be good, but rethrowing acceptable in dev.
+                throw;
             }
-            float pageWidth = page.PaperWidth - page.LeftMargin - page.RightMargin;
-
-            // Header
-            var reportTitle = new ReportTitleBand { Height = Units.Millimeters * 40 };
-            page.ReportTitle = reportTitle;
-
-            // Logo
-            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
-            if (File.Exists(logoPath))
-            {
-                var logoImg = new PictureObject
-                {
-                    Image = new Bitmap(logoPath),
-                    Bounds = new RectangleF(0, 0, Units.Millimeters * 25, Units.Millimeters * 25),
-                    // SizeMode = FastReport.PictureBoxSizeMode.Zoom
-                };
-                reportTitle.Objects.Add(logoImg);
-            }
-
-            // Title
-            var titleText = new TextObject
-            {
-                Bounds = new RectangleF(Units.Millimeters * 30, 0, pageWidth - Units.Millimeters * 30, Units.Millimeters * 10),
-                Text = "QUOTATION",
-                HorzAlign = HorzAlign.Center,
-                Font = new Font("Arial", 18, FontStyle.Bold)
-            };
-            reportTitle.Objects.Add(titleText);
-
-            // Company Info
-            var companyText = new TextObject
-            {
-                Bounds = new RectangleF(Units.Millimeters * 30, Units.Millimeters * 12, Units.Millimeters * 80, Units.Millimeters * 20),
-                Text = $"{company.Name}\n{company.AddressLine1}\n{company.AddressLine2}\nGST: {company.GstNumber}",
-                Font = new Font("Arial", 9)
-            };
-            reportTitle.Objects.Add(companyText);
-
-            // Quotation Details
-            var qDetails = new TextObject
-            {
-                Bounds = new RectangleF(Units.Millimeters * 120, Units.Millimeters * 12, Units.Millimeters * 70, Units.Millimeters * 20),
-                Text = $"Quotation No: {quotation.QuotationNo}\nDate: {quotation.Date:dd-MMM-yyyy}\nValid Until: {(quotation.ValidUntil.HasValue ? quotation.ValidUntil.Value.ToString("dd-MMM-yyyy") : "N/A")}",
-                HorzAlign = HorzAlign.Right,
-                Font = new Font("Arial", 9)
-            };
-            reportTitle.Objects.Add(qDetails);
-
-            // Items
-            var dataBand = new DataBand();
-            page.Bands.Add(dataBand);
-
-            var headerBand = new PageHeaderBand { Height = Units.Millimeters * 8 };
-            page.PageHeader = headerBand;
-
-            float[] colWidths = { 10, 100, 30, 50 };
-            string[] headers = { "#", "Description", "Qty", "Price" };
-            float curX = 0;
-            for (int i = 0; i < 4; i++)
-            {
-                CreateText(headerBand, headers[i], curX, colWidths[i], (i >= 2) ? HorzAlign.Right : HorzAlign.Left)
-                    .Font = new Font("Arial", 9, FontStyle.Bold);
-                curX += colWidths[i];
-            }
-
-            report.RegisterData(quotation.Items, "QItems");
-            var qItemsDs = report.GetDataSource("QItems");
-            if (qItemsDs != null)
-            {
-                qItemsDs.Enabled = true;
-                EnableAll(qItemsDs);
-                dataBand.DataSource = qItemsDs;
-            }
-            dataBand.Height = Units.Millimeters * 6;
-
-            curX = 0;
-            CreateText(dataBand, "[Row#]", curX, colWidths[0], HorzAlign.Center); curX += colWidths[0];
-            CreateText(dataBand, "[QItems.Description]", curX, colWidths[1], HorzAlign.Left); curX += colWidths[1];
-            CreateText(dataBand, "[QItems.Quantity]", curX, colWidths[2], HorzAlign.Right); curX += colWidths[2];
-            CreateText(dataBand, "[QItems.UnitPrice]", curX, colWidths[3], HorzAlign.Right).Format = new FastReport.Format.NumberFormat { UseLocale = false, DecimalDigits = 2 };
-
-            report.Prepare();
-            using var ms = new MemoryStream();
-            new PDFSimpleExport().Export(report, ms);
-            return ms.ToArray();
         }
 
         public byte[] GenerateDeliveryChallanPdf(DeliveryChallan dc, CompanySettings company)
