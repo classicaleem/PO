@@ -230,7 +230,8 @@ namespace HRPackage.Repositories
                 -- Aggregate HSN Codes
                 -- Aggregate HSN Codes
                 -- Aggregate HSN Codes
-                STUFF((SELECT DISTINCT ', ' + COALESCE(HsnCode, '') FROM InvoiceItems WHERE InvoiceId = i.InvoiceId FOR XML PATH('')), 1, 2, '') as HsnCode,
+                -- HsnCode Aggregation Removed
+
                 ISNULL(SUM(it.Quantity), 0) as Qty,
                 ISNULL(i.TotalAmount, 0) as Amount,
                 ISNULL((i.TotalAmount * i.CgstPercent / 100), 0) as Cgst,
@@ -283,8 +284,8 @@ namespace HRPackage.Repositories
                     CustomerGstNo = d.CustomerGstNo,
                     ProjectName = d.ProjectName,
                     PoNo = d.PoNo,
-                    HsnCode = d.HsnCode,
-                    Qty = d.Qty != null ? (int)d.Qty : 0,
+                // HsnCode removed as per request
+                Qty = d.Qty != null ? (int)d.Qty : 0,
                     Amount = amount,
                     Cgst = cgst,
                     Sgst = sgst,

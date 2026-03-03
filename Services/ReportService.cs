@@ -55,7 +55,7 @@ namespace HRPackage.Services
 
             // Watermark
             // Watermark
-            string watermarkPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+            string watermarkPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
             if (File.Exists(watermarkPath))
             {
                 page.Watermark.Image = new Bitmap(watermarkPath);
@@ -74,7 +74,7 @@ namespace HRPackage.Services
             page.ReportTitle = reportTitle;
 
             // Logo
-            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
             if (File.Exists(logoPath))
             {
                 var logoImg = new PictureObject();
@@ -293,7 +293,7 @@ namespace HRPackage.Services
         public byte[] GenerateInvoicePdf(Invoice invoice, CompanySettings company)
         {
             // Use QuestPDF for Invoice
-            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+            string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
             var document = new InvoiceDocument(invoice, company, logoPath);
             return document.GeneratePdf();
         }
@@ -303,7 +303,7 @@ namespace HRPackage.Services
             try 
             {
                  // QuestPDF
-                 string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+                 string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
                  var document = new QuotationDocument(quotation, company, logoPath);
                  return document.GeneratePdf();
             }
@@ -320,7 +320,7 @@ namespace HRPackage.Services
             try
             {
                  // QuestPDF logic
-                 string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.jpg");
+                 string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
                  var document = new DeliveryChallanDocument(dc, company, logoPath);
                  return document.GeneratePdf();
             }

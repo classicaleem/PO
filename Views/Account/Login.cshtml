@@ -4,52 +4,55 @@
     Layout = "_LoginLayout";
 }
 
-<div class="card">
-    <div class="card-header">
-        <div class="login-logo text-center mb-3">
-            <img src="~/images/logo.jpg" alt="SIM Logo" style="max-height: 100px; width: auto;">
-        </div>
-        <p class="text-muted mb-0">Sign in to access the system</p>
+<div class="card-glass fade-in-up">
+    <div class="text-center">
+        <!-- New Generated Logo -->
+        <img src="~/images/logo.png" alt="SIM Logo" class="brand-logo">
+        
+        <h2 class="login-title">Welcome Back</h2>
+        <p class="login-subtitle">Sign in to continue to your dashboard</p>
     </div>
-    <div class="card-body">
-        <form asp-action="Login" method="post">
-            <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
-            
-            @if (!ViewData.ModelState.IsValid)
-            {
-                <div class="alert alert-danger" role="alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    @Html.ValidationSummary(true, "", new { @class = "mb-0" })
-                </div>
-            }
-            
+
+    <form asp-action="Login" method="post">
+        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+        
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger mb-4" role="alert" style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.2); color: #fca5a5;">
+                <i class="fas fa-exclamation-triangle me-2"></i> @Html.ValidationSummary(true, "", new { @class = "d-inline" })
+            </div>
+        }
+
+        <div class="mb-4 text-start">
             <div class="input-group">
-                <span class="input-icon"><i class="fas fa-user"></i></span>
-                <input asp-for="Username" class="form-control" placeholder="Username" autofocus />
+                <span class="input-group-text"><i class="fas fa-user"></i></span>
+                <input asp-for="Username" class="form-control" placeholder="Username" autocomplete="off">
             </div>
             <span asp-validation-for="Username" class="text-danger"></span>
-            
+        </div>
+
+        <div class="mb-4 text-start">
             <div class="input-group">
-                <span class="input-icon"><i class="fas fa-lock"></i></span>
-                <input asp-for="Password" class="form-control" placeholder="Password" />
+                <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                <input asp-for="Password" type="password" class="form-control" placeholder="Password">
             </div>
             <span asp-validation-for="Password" class="text-danger"></span>
-            
-            <div class="form-check mb-4">
-                <input asp-for="RememberMe" class="form-check-input" />
-                <label asp-for="RememberMe" class="form-check-label">Remember me</label>
-            </div>
-            
-            <button type="submit" class="btn btn-primary btn-login">
-                <i class="fas fa-sign-in-alt me-2"></i>Sign In
-            </button>
-        </form>
-        
-        <div class="mt-4 text-center text-muted">
-            <small>
-                <i class="fas fa-info-circle me-1"></i>
-                Demo: admin/admin123 or user/user123
-            </small>
         </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+                <input asp-for="RememberMe" class="form-check-input" type="checkbox" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Remember me</label>
+            </div>
+            <a href="#" class="text-decoration-none" style="color: #a5b4fc; font-size: 0.9rem;">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-login">
+            Sign In <i class="fas fa-arrow-right ms-2"></i>
+        </button>
+    </form>
+    
+    <div class="mt-4 text-center">
+        <p style="color: #64748b; font-size: 0.85rem;">&copy; @DateTime.Now.Year Smart Integration Management</p>
     </div>
 </div>
