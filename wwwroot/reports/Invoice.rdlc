@@ -1,0 +1,855 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner"
+        xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+  <AutoRefresh>0</AutoRefresh>
+
+  <!-- ═══════════════════════════════════════
+       DATA SETS
+  ═══════════════════════════════════════ -->
+  <DataSources>
+    <DataSource Name="InvoiceDS_Src">
+      <ConnectionProperties>
+        <DataProvider>None</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+    </DataSource>
+  </DataSources>
+
+  <DataSets>
+    <!-- Invoice Header -->
+    <DataSet Name="InvoiceDS">
+      <Fields>
+        <Field Name="InvoiceNumber"><DataField>InvoiceNumber</DataField></Field>
+        <Field Name="InvoiceDate"><DataField>InvoiceDate</DataField></Field>
+        <Field Name="PoNumber"><DataField>PoNumber</DataField></Field>
+        <Field Name="PoDate"><DataField>PoDate</DataField></Field>
+        <Field Name="ContactName"><DataField>ContactName</DataField></Field>
+        <Field Name="ContactNo"><DataField>ContactNo</DataField></Field>
+        <Field Name="VehicleNo"><DataField>VehicleNo</DataField></Field>
+        <Field Name="SimDcNo"><DataField>SimDcNo</DataField></Field>
+        <Field Name="YourDcNo"><DataField>YourDcNo</DataField></Field>
+        <Field Name="Remarks"><DataField>Remarks</DataField></Field>
+        <Field Name="TotalAmount"><DataField>TotalAmount</DataField></Field>
+        <Field Name="CgstPercent"><DataField>CgstPercent</DataField></Field>
+        <Field Name="SgstPercent"><DataField>SgstPercent</DataField></Field>
+        <Field Name="IgstPercent"><DataField>IgstPercent</DataField></Field>
+        <Field Name="CgstAmount"><DataField>CgstAmount</DataField></Field>
+        <Field Name="SgstAmount"><DataField>SgstAmount</DataField></Field>
+        <Field Name="IgstAmount"><DataField>IgstAmount</DataField></Field>
+        <Field Name="FreightAmount"><DataField>FreightAmount</DataField></Field>
+        <Field Name="RoundOff"><DataField>RoundOff</DataField></Field>
+        <Field Name="GrandTotal"><DataField>GrandTotal</DataField></Field>
+        <Field Name="GrandTotalWords"><DataField>GrandTotalWords</DataField></Field>
+      </Fields>
+      <Query>
+        <DataSourceName>InvoiceDS_Src</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- Invoice Line Items -->
+    <DataSet Name="InvoiceItemsDS">
+      <Fields>
+        <Field Name="RowNum"><DataField>RowNum</DataField></Field>
+        <Field Name="ItemDescription"><DataField>ItemDescription</DataField></Field>
+        <Field Name="HsnCode"><DataField>HsnCode</DataField></Field>
+        <Field Name="UnitPrice"><DataField>UnitPrice</DataField></Field>
+        <Field Name="Quantity"><DataField>Quantity</DataField></Field>
+        <Field Name="LineAmount"><DataField>LineAmount</DataField></Field>
+      </Fields>
+      <Query>
+        <DataSourceName>InvoiceDS_Src</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- Company Info -->
+    <DataSet Name="CompanyDS">
+      <Fields>
+        <Field Name="Name"><DataField>Name</DataField></Field>
+        <Field Name="AddressLine1"><DataField>AddressLine1</DataField></Field>
+        <Field Name="AddressLine2"><DataField>AddressLine2</DataField></Field>
+        <Field Name="Email"><DataField>Email</DataField></Field>
+        <Field Name="GstNumber"><DataField>GstNumber</DataField></Field>
+        <Field Name="LogoBase64"><DataField>LogoBase64</DataField></Field>
+      </Fields>
+      <Query>
+        <DataSourceName>InvoiceDS_Src</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+    </DataSet>
+
+    <!-- Customer Info -->
+    <DataSet Name="CustomerDS">
+      <Fields>
+        <Field Name="CustomerName"><DataField>CustomerName</DataField></Field>
+        <Field Name="FullAddress"><DataField>FullAddress</DataField></Field>
+        <Field Name="ContactNumber"><DataField>ContactNumber</DataField></Field>
+        <Field Name="GstNumber"><DataField>GstNumber</DataField></Field>
+        <Field Name="ShipToAddress"><DataField>ShipToAddress</DataField></Field>
+      </Fields>
+      <Query>
+        <DataSourceName>InvoiceDS_Src</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+    </DataSet>
+  </DataSets>
+
+  <!-- ═══════════════════════════════════════
+       PAGE SETTINGS
+  ═══════════════════════════════════════ -->
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+
+          <!-- ╔══════════════════════════════════════════════╗
+               ║  RECTANGLE: Full invoice layout container   ║
+               ╚══════════════════════════════════════════════╝ -->
+          <Rectangle Name="InvoiceContainer">
+            <Top>0cm</Top>
+            <Left>0cm</Left>
+            <Width>19cm</Width>
+            <Height>27cm</Height>
+            <ReportItems>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 1: HEADER — Logo | INVOICE | Original
+              ───────────────────────────────────────────────── -->
+
+              <!-- Logo Cell -->
+              <Rectangle Name="HeaderLogoCell">
+                <Top>0cm</Top><Left>0cm</Left>
+                <Width>4.5cm</Width><Height>1.8cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#1E3A5F</Color></Border>
+                  <BackgroundColor>#1E3A5F</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Image Name="CompanyLogo">
+                    <Source>Database</Source>
+                    <Value>=First(Fields!LogoBase64.Value, "CompanyDS")</Value>
+                    <MIMEType>image/png</MIMEType>
+                    <Sizing>FitProportional</Sizing>
+                    <Top>0.1cm</Top><Left>0.1cm</Left>
+                    <Width>4.3cm</Width><Height>1.6cm</Height>
+                  </Image>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- INVOICE Title Cell -->
+              <Rectangle Name="HeaderTitleCell">
+                <Top>0cm</Top><Left>4.5cm</Left>
+                <Width>10cm</Width><Height>1.8cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#1E3A5F</Color></Border>
+                  <BackgroundColor>#1E3A5F</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="InvoiceTitle">
+                    <Value>INVOICE</Value>
+                    <Top>0.3cm</Top><Left>0cm</Left>
+                    <Width>10cm</Width><Height>1.2cm</Height>
+                    <Style>
+                      <FontFamily>Arial</FontFamily>
+                      <FontSize>22pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
+                      <Color>White</Color>
+                      <TextAlign>Center</TextAlign>
+                      <VerticalAlign>Middle</VerticalAlign>
+                    </Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- Original for Recipient Cell -->
+              <Rectangle Name="HeaderOriginalCell">
+                <Top>0cm</Top><Left>14.5cm</Left>
+                <Width>4.5cm</Width><Height>1.8cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#1E3A5F</Color></Border>
+                  <BackgroundColor>#1E3A5F</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="OriginalLabel">
+                    <Value>Original for Recipient</Value>
+                    <Top>0.55cm</Top><Left>0cm</Left>
+                    <Width>4.5cm</Width><Height>0.6cm</Height>
+                    <Style>
+                      <FontFamily>Arial</FontFamily>
+                      <FontSize>8pt</FontSize>
+                      <Color>White</Color>
+                      <TextAlign>Center</TextAlign>
+                      <VerticalAlign>Middle</VerticalAlign>
+                    </Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 2: From (Company) | Invoice Details
+              ───────────────────────────────────────────────── -->
+
+              <!-- From Cell -->
+              <Rectangle Name="FromCell">
+                <Top>1.8cm</Top><Left>0cm</Left>
+                <Width>9.5cm</Width><Height>2.2cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>White</BackgroundColor>
+                  <PaddingLeft>5pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="FromLabel">
+                    <Value>=First(Fields!Name.Value, "CompanyDS")</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8.5pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                    <CanGrow>true</CanGrow>
+                  </Textbox>
+                  <Textbox Name="FromAddress1">
+                    <Value>=First(Fields!AddressLine1.Value, "CompanyDS") &amp; ", " &amp; First(Fields!AddressLine2.Value, "CompanyDS")</Value>
+                    <Top>0.55cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                    <CanGrow>true</CanGrow>
+                  </Textbox>
+                  <Textbox Name="FromEmail">
+                    <Value>="Email: " &amp; First(Fields!Email.Value, "CompanyDS")</Value>
+                    <Top>1.0cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="FromGst">
+                    <Value>="GST NO : " &amp; First(Fields!GstNumber.Value, "CompanyDS")</Value>
+                    <Top>1.35cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- Invoice Details Cell -->
+              <Rectangle Name="InvoiceDetailsCell">
+                <Top>1.8cm</Top><Left>9.5cm</Left>
+                <Width>9.5cm</Width><Height>2.2cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>#F7F9FC</BackgroundColor>
+                  <PaddingLeft>5pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="InvNoLabel">
+                    <Value>="Invoice No  :  " &amp; First(Fields!InvoiceNumber.Value, "InvoiceDS")</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8.5pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="InvDateLabel">
+                    <Value>="Invoice Date  :  " &amp; Format(First(Fields!InvoiceDate.Value, "InvoiceDS"), "dd-MMM-yyyy")</Value>
+                    <Top>0.55cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 3: To (Customer) | PO Details
+              ───────────────────────────────────────────────── -->
+
+              <!-- To Cell -->
+              <Rectangle Name="ToCell">
+                <Top>4.0cm</Top><Left>0cm</Left>
+                <Width>9.5cm</Width><Height>2.5cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>White</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="ToHeaderLabel">
+                    <Value>To :</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left>
+                    <Width>1.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="ToName">
+                    <Value>=First(Fields!CustomerName.Value, "CustomerDS")</Value>
+                    <Top>0.1cm</Top><Left>1.2cm</Left>
+                    <Width>8.1cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                  <Textbox Name="ToAddress">
+                    <Value>=First(Fields!FullAddress.Value, "CustomerDS")</Value>
+                    <Top>0.5cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.7cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                    <CanGrow>true</CanGrow>
+                  </Textbox>
+                  <Textbox Name="ToPhone">
+                    <Value>="Ph : " &amp; First(Fields!ContactNumber.Value, "CustomerDS")</Value>
+                    <Top>1.25cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="ToGst">
+                    <Value>="GST NO : " &amp; First(Fields!GstNumber.Value, "CustomerDS")</Value>
+                    <Top>1.6cm</Top><Left>0.1cm</Left>
+                    <Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- PO Details Cell -->
+              <Rectangle Name="PoDetailsCell">
+                <Top>4.0cm</Top><Left>9.5cm</Left>
+                <Width>9.5cm</Width><Height>2.5cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>#F7F9FC</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="PoNoTxt">
+                    <Value>="PO No           :  " &amp; First(Fields!PoNumber.Value, "InvoiceDS")</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                  <Textbox Name="PoDtTxt">
+                    <Value>="PO Date        :  " &amp; Format(First(Fields!PoDate.Value, "InvoiceDS"), "dd-MMM-yyyy")</Value>
+                    <Top>0.5cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="ContactNameTxt">
+                    <Value>="Contact Name :  " &amp; First(Fields!ContactName.Value, "InvoiceDS")</Value>
+                    <Top>0.9cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="ContactNoTxt">
+                    <Value>="Contact No     :  " &amp; First(Fields!ContactNo.Value, "InvoiceDS")</Value>
+                    <Top>1.3cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="VehicleNoTxt">
+                    <Value>="Vehicle No      :  " &amp; First(Fields!VehicleNo.Value, "InvoiceDS")</Value>
+                    <Top>1.65cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 4: Ship To | DC Details
+              ───────────────────────────────────────────────── -->
+
+              <!-- Ship To Cell -->
+              <Rectangle Name="ShipToCell">
+                <Top>6.5cm</Top><Left>0cm</Left>
+                <Width>9.5cm</Width><Height>2.0cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>White</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="ShipToHeaderLabel">
+                    <Value>Ship To :</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left><Width>2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="ShipToName">
+                    <Value>=First(Fields!CustomerName.Value, "CustomerDS")</Value>
+                    <Top>0.1cm</Top><Left>2cm</Left><Width>7.3cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                  <Textbox Name="ShipToAddress">
+                    <Value>=First(Fields!ShipToAddress.Value, "CustomerDS")</Value>
+                    <Top>0.5cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.7cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                    <CanGrow>true</CanGrow>
+                  </Textbox>
+                  <Textbox Name="ShipToGst">
+                    <Value>="GST NO : " &amp; First(Fields!GstNumber.Value, "CustomerDS")</Value>
+                    <Top>1.25cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- DC Details Cell -->
+              <Rectangle Name="DcDetailsCell">
+                <Top>6.5cm</Top><Left>9.5cm</Left>
+                <Width>9.5cm</Width><Height>2.0cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>#F7F9FC</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="SimDcNoTxt">
+                    <Value>="SIM DC No    :  " &amp; First(Fields!SimDcNo.Value, "InvoiceDS")</Value>
+                    <Top>0.35cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="YourDcNoTxt">
+                    <Value>="Your DC No    :  " &amp; First(Fields!YourDcNo.Value, "InvoiceDS")</Value>
+                    <Top>0.8cm</Top><Left>0.1cm</Left><Width>9.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 5: ITEMS TABLE
+              ───────────────────────────────────────────────── -->
+
+              <Tablix Name="ItemsTable">
+                <TablixBody>
+                  <TablixColumns>
+                    <TablixColumn><Width>0.9cm</Width></TablixColumn>
+                    <TablixColumn><Width>7.5cm</Width></TablixColumn>
+                    <TablixColumn><Width>2.1cm</Width></TablixColumn>
+                    <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                    <TablixColumn><Width>1.5cm</Width></TablixColumn>
+                    <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                  </TablixColumns>
+                  <TablixRows>
+                    <!-- Column Header Row -->
+                    <TablixRow>
+                      <Height>0.5cm</Height>
+                      <TablixCells>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="H_SNo"><Value>S.No</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight>
+                                <Color>White</Color><BackgroundColor>#1E3A5F</BackgroundColor>
+                                <TextAlign>Center</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#FFFFFF</Color></Border>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="H_Desc"><Value>Description</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight>
+                                <Color>White</Color><BackgroundColor>#1E3A5F</BackgroundColor>
+                                <TextAlign>Left</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>4pt</PaddingLeft>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#FFFFFF</Color></Border>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="H_Hsn"><Value>HSN Code</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight>
+                                <Color>White</Color><BackgroundColor>#1E3A5F</BackgroundColor>
+                                <TextAlign>Center</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#FFFFFF</Color></Border>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="H_Price"><Value>Unit Price</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight>
+                                <Color>White</Color><BackgroundColor>#1E3A5F</BackgroundColor>
+                                <TextAlign>Right</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <PaddingRight>4pt</PaddingRight>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#FFFFFF</Color></Border>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="H_Qty"><Value>Qty</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight>
+                                <Color>White</Color><BackgroundColor>#1E3A5F</BackgroundColor>
+                                <TextAlign>Center</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#FFFFFF</Color></Border>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="H_Amount"><Value>Amount</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight>
+                                <Color>White</Color><BackgroundColor>#1E3A5F</BackgroundColor>
+                                <TextAlign>Right</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <PaddingRight>4pt</PaddingRight>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#FFFFFF</Color></Border>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                      </TablixCells>
+                    </TablixRow>
+                    <!-- Data Row -->
+                    <TablixRow>
+                      <Height>0.55cm</Height>
+                      <TablixCells>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="D_SNo"><Value>=Fields!RowNum.Value</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize>
+                                <TextAlign>Center</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#CCCCCC</Color></Border>
+                                <BackgroundColor>=IIF(RowNumber("InvoiceItemsDS") Mod 2 = 0, "#F0F4FA", "White")</BackgroundColor>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="D_Desc"><Value>=Fields!ItemDescription.Value</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize>
+                                <TextAlign>Left</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <PaddingLeft>4pt</PaddingLeft>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#CCCCCC</Color></Border>
+                                <BackgroundColor>=IIF(RowNumber("InvoiceItemsDS") Mod 2 = 0, "#F0F4FA", "White")</BackgroundColor>
+                              </Style><CanGrow>true</CanGrow></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="D_Hsn"><Value>=Fields!HsnCode.Value</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize>
+                                <TextAlign>Center</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#CCCCCC</Color></Border>
+                                <BackgroundColor>=IIF(RowNumber("InvoiceItemsDS") Mod 2 = 0, "#F0F4FA", "White")</BackgroundColor>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="D_Price"><Value>=Format(Fields!UnitPrice.Value, "N2")</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize>
+                                <TextAlign>Right</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <PaddingRight>4pt</PaddingRight>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#CCCCCC</Color></Border>
+                                <BackgroundColor>=IIF(RowNumber("InvoiceItemsDS") Mod 2 = 0, "#F0F4FA", "White")</BackgroundColor>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="D_Qty"><Value>=Fields!Quantity.Value</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize>
+                                <TextAlign>Center</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#CCCCCC</Color></Border>
+                                <BackgroundColor>=IIF(RowNumber("InvoiceItemsDS") Mod 2 = 0, "#F0F4FA", "White")</BackgroundColor>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                        <TablixCell>
+                          <CellContents>
+                            <Textbox Name="D_Amount"><Value>=Format(Fields!LineAmount.Value, "N2")</Value>
+                              <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize>
+                                <TextAlign>Right</TextAlign><VerticalAlign>Middle</VerticalAlign>
+                                <PaddingRight>4pt</PaddingRight>
+                                <Border><Style>Solid</Style><Width>0.5pt</Width><Color>#CCCCCC</Color></Border>
+                                <BackgroundColor>=IIF(RowNumber("InvoiceItemsDS") Mod 2 = 0, "#F0F4FA", "White")</BackgroundColor>
+                              </Style></Textbox>
+                          </CellContents>
+                        </TablixCell>
+                      </TablixCells>
+                    </TablixRow>
+                  </TablixRows>
+                </TablixBody>
+                <TablixRowHierarchy>
+                  <TablixMembers>
+                    <!-- Header row member (static) -->
+                    <TablixMember><KeepWithGroup>After</KeepWithGroup></TablixMember>
+                    <!-- Data row member -->
+                    <TablixMember>
+                      <Group Name="TableDetail_InvoiceItems"></Group>
+                    </TablixMember>
+                  </TablixMembers>
+                </TablixRowHierarchy>
+                <TablixColumnHierarchy>
+                  <TablixMembers>
+                    <TablixMember></TablixMember>
+                    <TablixMember></TablixMember>
+                    <TablixMember></TablixMember>
+                    <TablixMember></TablixMember>
+                    <TablixMember></TablixMember>
+                    <TablixMember></TablixMember>
+                  </TablixMembers>
+                </TablixColumnHierarchy>
+                <DataSetName>InvoiceItemsDS</DataSetName>
+                <Top>8.5cm</Top>
+                <Left>0cm</Left>
+                <Width>17cm</Width>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#1E3A5F</Color></Border>
+                </Style>
+              </Tablix>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 6: Sub Total Row
+              ───────────────────────────────────────────────── -->
+
+              <Rectangle Name="SubTotalRow">
+                <Top>16.0cm</Top><Left>0cm</Left>
+                <Width>19cm</Width><Height>0.55cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>#EEF2F7</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="SubTotalLabel">
+                    <Value>Sub Total</Value>
+                    <Top>0.07cm</Top><Left>0.1cm</Left><Width>15.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8.5pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>10pt</PaddingRight></Style>
+                  </Textbox>
+                  <Textbox Name="SubTotalValue">
+                    <Value>=Format(First(Fields!TotalAmount.Value, "InvoiceDS"), "N2")</Value>
+                    <Top>0.07cm</Top><Left>15.9cm</Left><Width>2.9cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8.5pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 7: Remarks | Tax Breakdown
+              ───────────────────────────────────────────────── -->
+
+              <!-- Remarks Cell -->
+              <Rectangle Name="RemarksCell">
+                <Top>16.55cm</Top><Left>0cm</Left>
+                <Width>11.5cm</Width><Height>3.0cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>White</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="RemarksLabel">
+                    <Value>Remarks</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left><Width>11.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="RemarksValue">
+                    <Value>=First(Fields!Remarks.Value, "InvoiceDS")</Value>
+                    <Top>0.5cm</Top><Left>0.1cm</Left><Width>11.2cm</Width><Height>2.3cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                    <CanGrow>true</CanGrow>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- Tax Breakdown Cell -->
+              <Rectangle Name="TaxCell">
+                <Top>16.55cm</Top><Left>11.5cm</Left>
+                <Width>7.5cm</Width><Height>3.0cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>#F7F9FC</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <!-- CGST -->
+                  <Textbox Name="CgstLabel">
+                    <Value>=IIF(First(Fields!CgstAmount.Value,"InvoiceDS")=0, "", "CGST @ " &amp; First(Fields!CgstPercent.Value,"InvoiceDS") &amp; "%")</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left><Width>4.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                    <Hidden>=IIF(First(Fields!CgstAmount.Value,"InvoiceDS")=0, true, false)</Hidden>
+                  </Textbox>
+                  <Textbox Name="CgstValue">
+                    <Value>=Format(First(Fields!CgstAmount.Value,"InvoiceDS"),"N2")</Value>
+                    <Top>0.1cm</Top><Left>5.0cm</Left><Width>2.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight></Style>
+                    <Hidden>=IIF(First(Fields!CgstAmount.Value,"InvoiceDS")=0, true, false)</Hidden>
+                  </Textbox>
+                  <!-- SGST -->
+                  <Textbox Name="SgstLabel">
+                    <Value>=IIF(First(Fields!SgstAmount.Value,"InvoiceDS")=0, "", "SGST @ " &amp; First(Fields!SgstPercent.Value,"InvoiceDS") &amp; "%")</Value>
+                    <Top>0.55cm</Top><Left>0.1cm</Left><Width>4.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                    <Hidden>=IIF(First(Fields!SgstAmount.Value,"InvoiceDS")=0, true, false)</Hidden>
+                  </Textbox>
+                  <Textbox Name="SgstValue">
+                    <Value>=Format(First(Fields!SgstAmount.Value,"InvoiceDS"),"N2")</Value>
+                    <Top>0.55cm</Top><Left>5.0cm</Left><Width>2.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight></Style>
+                    <Hidden>=IIF(First(Fields!SgstAmount.Value,"InvoiceDS")=0, true, false)</Hidden>
+                  </Textbox>
+                  <!-- IGST -->
+                  <Textbox Name="IgstLabel">
+                    <Value>=IIF(First(Fields!IgstAmount.Value,"InvoiceDS")=0, "", "IGST @ " &amp; First(Fields!IgstPercent.Value,"InvoiceDS") &amp; "%")</Value>
+                    <Top>1.0cm</Top><Left>0.1cm</Left><Width>4.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                    <Hidden>=IIF(First(Fields!IgstAmount.Value,"InvoiceDS")=0, true, false)</Hidden>
+                  </Textbox>
+                  <Textbox Name="IgstValue">
+                    <Value>=Format(First(Fields!IgstAmount.Value,"InvoiceDS"),"N2")</Value>
+                    <Top>1.0cm</Top><Left>5.0cm</Left><Width>2.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight></Style>
+                    <Hidden>=IIF(First(Fields!IgstAmount.Value,"InvoiceDS")=0, true, false)</Hidden>
+                  </Textbox>
+                  <!-- Freight -->
+                  <Textbox Name="FreightLabel">
+                    <Value>Road Freight / Transp</Value>
+                    <Top>1.45cm</Top><Left>0.1cm</Left><Width>4.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="FreightValue">
+                    <Value>=Format(First(Fields!FreightAmount.Value,"InvoiceDS"),"N2")</Value>
+                    <Top>1.45cm</Top><Left>5.0cm</Left><Width>2.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight></Style>
+                  </Textbox>
+                  <!-- Round Off -->
+                  <Textbox Name="RoundOffLabel">
+                    <Value>Round Off</Value>
+                    <Top>1.9cm</Top><Left>0.1cm</Left><Width>4.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                  </Textbox>
+                  <Textbox Name="RoundOffValue">
+                    <Value>=Format(First(Fields!RoundOff.Value,"InvoiceDS"),"N2")</Value>
+                    <Top>1.9cm</Top><Left>5.0cm</Left><Width>2.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 8: Grand Total in Words | Grand Total ₹
+              ───────────────────────────────────────────────── -->
+
+              <Rectangle Name="GrandTotalWordsCell">
+                <Top>19.55cm</Top><Left>0cm</Left>
+                <Width>11.5cm</Width><Height>1.1cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#1E3A5F</Color></Border>
+                  <BackgroundColor>#EEF2F7</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="GtWordsLabel">
+                    <Value>Grand Total in Words</Value>
+                    <Top>0.1cm</Top><Left>0.1cm</Left><Width>11.2cm</Width><Height>0.35cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="GtWordsValue">
+                    <Value>="Rupees " &amp; First(Fields!GrandTotalWords.Value, "InvoiceDS")</Value>
+                    <Top>0.5cm</Top><Left>0.1cm</Left><Width>11.2cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><FontStyle>Italic</FontStyle></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <Rectangle Name="GrandTotalValueCell">
+                <Top>19.55cm</Top><Left>11.5cm</Left>
+                <Width>7.5cm</Width><Height>1.1cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#1E3A5F</Color></Border>
+                  <BackgroundColor>#1E3A5F</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="GtLabel">
+                    <Value>Grand Total (₹)</Value>
+                    <Top>0.35cm</Top><Left>0.1cm</Left><Width>4cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>10pt</FontSize><FontWeight>Bold</FontWeight><Color>White</Color></Style>
+                  </Textbox>
+                  <Textbox Name="GtValue">
+                    <Value>=Format(First(Fields!GrandTotal.Value, "InvoiceDS"), "N2")</Value>
+                    <Top>0.35cm</Top><Left>4.5cm</Left><Width>2.8cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>11pt</FontSize><FontWeight>Bold</FontWeight><Color>White</Color><TextAlign>Right</TextAlign><PaddingRight>4pt</PaddingRight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 9: Declaration
+              ───────────────────────────────────────────────── -->
+
+              <Rectangle Name="DeclarationRow">
+                <Top>20.65cm</Top><Left>0cm</Left>
+                <Width>19cm</Width><Height>0.9cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>White</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="DeclarationLabel">
+                    <Value>Declaration</Value>
+                    <Top>0.05cm</Top><Left>0.2cm</Left><Width>3cm</Width><Height>0.3cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize><FontWeight>Bold</FontWeight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="DeclarationText">
+                    <Value>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</Value>
+                    <Top>0.4cm</Top><Left>0.2cm</Left><Width>18.6cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>7pt</FontSize></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- ─────────────────────────────────────────────
+                   ROW 10: Signature Row
+              ───────────────────────────────────────────────── -->
+
+              <!-- Customer Signature Cell -->
+              <Rectangle Name="CustomerSignCell">
+                <Top>21.55cm</Top><Left>0cm</Left>
+                <Width>9.5cm</Width><Height>2.5cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>White</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="CustomerSignLabel">
+                    <Value>Customer's Seal and Signature</Value>
+                    <Top>1.9cm</Top><Left>0cm</Left><Width>9.5cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Center</TextAlign></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+              <!-- Company Signature Cell -->
+              <Rectangle Name="CompanySignCell">
+                <Top>21.55cm</Top><Left>9.5cm</Left>
+                <Width>9.5cm</Width><Height>2.5cm</Height>
+                <Style>
+                  <Border><Style>Solid</Style><Width>1pt</Width><Color>#CCCCCC</Color></Border>
+                  <BackgroundColor>#F7F9FC</BackgroundColor>
+                </Style>
+                <ReportItems>
+                  <Textbox Name="ForCompanyLabel">
+                    <Value>=First(Fields!Name.Value, "CompanyDS")</Value>
+                    <Top>0.1cm</Top><Left>0cm</Left><Width>9.4cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>8pt</PaddingRight><Color>#1E3A5F</Color></Style>
+                  </Textbox>
+                  <Textbox Name="AuthorisedSignLabel">
+                    <Value>Authorised Signature</Value>
+                    <Top>1.9cm</Top><Left>0cm</Left><Width>9.4cm</Width><Height>0.4cm</Height>
+                    <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><TextAlign>Right</TextAlign><PaddingRight>8pt</PaddingRight></Style>
+                  </Textbox>
+                </ReportItems>
+              </Rectangle>
+
+            </ReportItems>
+          </Rectangle>
+
+          <!-- Footer: Computer Generated Notice -->
+          <Textbox Name="FooterNotice">
+            <Value>This is a Computer Generated Invoice</Value>
+            <Top>27.2cm</Top><Left>0cm</Left><Width>19cm</Width><Height>0.4cm</Height>
+            <Style>
+              <FontFamily>Arial</FontFamily><FontSize>7.5pt</FontSize>
+              <Color>#888888</Color><TextAlign>Center</TextAlign>
+            </Style>
+          </Textbox>
+
+        </ReportItems>
+        <Height>28cm</Height>
+        <Style></Style>
+      </Body>
+      <Page>
+        <PageHeight>29.7cm</PageHeight>
+        <PageWidth>21cm</PageWidth>
+        <LeftMargin>1cm</LeftMargin>
+        <RightMargin>1cm</RightMargin>
+        <TopMargin>1cm</TopMargin>
+        <BottomMargin>1cm</BottomMargin>
+        <Style></Style>
+      </Page>
+    </ReportSection>
+  </ReportSections>
+
+  <Language>en-IN</Language>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportUnitType>Cm</rd:ReportUnitType>
+</Report>

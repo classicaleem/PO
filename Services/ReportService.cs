@@ -1,15 +1,15 @@
-using FastReport;
-using FastReport.Export.PdfSimple;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
-// using QuestPDF.Infrastructure;
+using FastReport;
+using FastReport.Export.PdfSimple;
 using FastReport.Table;
 using FastReport.Utils;
 using FastReport.Data;
 using HRPackage.Models;
 using System.Drawing;
-using QuestPDF.Fluent;
-// using QuestPDF.Infrastructure; // Removed to avoid Color ambiguity
+using Microsoft.Reporting.NETCore;
+using FRReport = FastReport.Report;
+using FRPage  = FastReport.ReportPage;
 
 namespace HRPackage.Services
 {
@@ -36,7 +36,7 @@ namespace HRPackage.Services
             string reportPath = Path.Combine(_env.WebRootPath, "reports", "PurchaseOrder.frx");
             if (File.Exists(reportPath))
             {
-                 using var customReport = new Report();
+                 using var customReport = new FRReport();
                  customReport.Load(reportPath);
                  customReport.RegisterData(new[] { po }, "PurchaseOrder");
                  customReport.RegisterData(po.Items, "PoItems");
@@ -48,8 +48,8 @@ namespace HRPackage.Services
                  return customMs.ToArray();
             }
 
-            using var report = new Report();
-            var page = new ReportPage();
+            using var report = new FRReport();
+            var page = new FRPage();
             page.Name = "Page1";
             report.Pages.Add(page);
 
@@ -292,10 +292,127 @@ namespace HRPackage.Services
 
         public byte[] GenerateInvoicePdf(Invoice invoice, CompanySettings company)
         {
-            // Use QuestPDF for Invoice
+            string rdlcPath = Path.Combine(_env.WebRootPath, "reports", "Invoice.rdlc");
             string logoPath = Path.Combine(_env.WebRootPath, "images", "logo.png");
-            var document = new InvoiceDocument(invoice, company, logoPath);
-            return document.GeneratePdf();
+
+            string logoBase64 = File.Exists(logoPath)
+                ? Convert.ToBase64String(File.ReadAllBytes(logoPath))
+                : string.Empty;
+
+            var customer = invoice.Customer;
+            string shipToAddress = !string.IsNullOrWhiteSpace(invoice.ShippingAddress)
+                ? invoice.ShippingAddress
+                : customer?.FullAddress ?? string.Empty;
+            string grandTotalWords = Helpers.NumberToWords.ConvertAmount((double)invoice.GrandTotal);
+
+            // ── InvoiceDS ──────────────────────────────────────────
+            var dtInvoice = new System.Data.DataTable("InvoiceDS");
+            dtInvoice.Columns.Add("InvoiceNumber");
+            dtInvoice.Columns.Add("InvoiceDate",    typeof(DateTime));
+            dtInvoice.Columns.Add("PoNumber");
+            dtInvoice.Columns.Add("PoDate",         typeof(DateTime));
+            dtInvoice.Columns.Add("ContactName");
+            dtInvoice.Columns.Add("ContactNo");
+            dtInvoice.Columns.Add("VehicleNo");
+            dtInvoice.Columns.Add("SimDcNo");
+            dtInvoice.Columns.Add("YourDcNo");
+            dtInvoice.Columns.Add("Remarks");
+            dtInvoice.Columns.Add("TotalAmount",    typeof(decimal));
+            dtInvoice.Columns.Add("CgstPercent",    typeof(decimal));
+            dtInvoice.Columns.Add("SgstPercent",    typeof(decimal));
+            dtInvoice.Columns.Add("IgstPercent",    typeof(decimal));
+            dtInvoice.Columns.Add("CgstAmount",     typeof(decimal));
+            dtInvoice.Columns.Add("SgstAmount",     typeof(decimal));
+            dtInvoice.Columns.Add("IgstAmount",     typeof(decimal));
+            dtInvoice.Columns.Add("FreightAmount",  typeof(decimal));
+            dtInvoice.Columns.Add("RoundOff",       typeof(decimal));
+            dtInvoice.Columns.Add("GrandTotal",     typeof(decimal));
+            dtInvoice.Columns.Add("GrandTotalWords");
+            dtInvoice.Rows.Add(
+                invoice.InvoiceNumber,
+                invoice.InvoiceDate,
+                invoice.PoNumber ?? string.Empty,
+                invoice.PurchaseOrder?.PoDate ?? DateTime.MinValue,
+                invoice.ContactName ?? string.Empty,
+                invoice.ContactNo ?? string.Empty,
+                invoice.VehicleNo ?? string.Empty,
+                invoice.SimDcNo ?? string.Empty,
+                invoice.YourDcNo ?? string.Empty,
+                invoice.Remarks ?? string.Empty,
+                invoice.TotalAmount,
+                invoice.CgstPercent,
+                invoice.SgstPercent,
+                invoice.IgstPercent,
+                invoice.CgstAmount,
+                invoice.SgstAmount,
+                invoice.IgstAmount,
+                invoice.FreightAmount,
+                invoice.RoundOff,
+                invoice.GrandTotal,
+                grandTotalWords
+            );
+
+            // ── InvoiceItemsDS ──────────────────────────────────────
+            var dtItems = new System.Data.DataTable("InvoiceItemsDS");
+            dtItems.Columns.Add("RowNum",           typeof(int));
+            dtItems.Columns.Add("ItemDescription");
+            dtItems.Columns.Add("HsnCode");
+            dtItems.Columns.Add("UnitPrice",        typeof(decimal));
+            dtItems.Columns.Add("Quantity",         typeof(decimal));
+            dtItems.Columns.Add("LineAmount",       typeof(decimal));
+            int rowNum = 1;
+            foreach (var item in invoice.Items)
+            {
+                dtItems.Rows.Add(
+                    rowNum++,
+                    item.ItemDescription ?? string.Empty,
+                    item.HsnCode ?? string.Empty,
+                    item.UnitPrice,
+                    item.Quantity,
+                    item.LineAmount
+                );
+            }
+
+            // ── CompanyDS ───────────────────────────────────────────
+            var dtCompany = new System.Data.DataTable("CompanyDS");
+            dtCompany.Columns.Add("Name");
+            dtCompany.Columns.Add("AddressLine1");
+            dtCompany.Columns.Add("AddressLine2");
+            dtCompany.Columns.Add("Email");
+            dtCompany.Columns.Add("GstNumber");
+            dtCompany.Columns.Add("LogoBase64");
+            dtCompany.Rows.Add(
+                company.Name,
+                company.AddressLine1,
+                company.AddressLine2,
+                company.Email,
+                company.GstNumber,
+                logoBase64
+            );
+
+            // ── CustomerDS ──────────────────────────────────────────
+            var dtCustomer = new System.Data.DataTable("CustomerDS");
+            dtCustomer.Columns.Add("CustomerName");
+            dtCustomer.Columns.Add("FullAddress");
+            dtCustomer.Columns.Add("ContactNumber");
+            dtCustomer.Columns.Add("GstNumber");
+            dtCustomer.Columns.Add("ShipToAddress");
+            dtCustomer.Rows.Add(
+                customer?.CustomerName ?? invoice.CustomerName ?? string.Empty,
+                customer?.FullAddress ?? string.Empty,
+                customer?.ContactNumber ?? string.Empty,
+                customer?.GstNumber ?? string.Empty,
+                shipToAddress
+            );
+
+            using var localReport = new LocalReport();
+            localReport.ReportPath = rdlcPath;
+            localReport.DataSources.Add(new ReportDataSource("InvoiceDS",      dtInvoice));
+            localReport.DataSources.Add(new ReportDataSource("InvoiceItemsDS", dtItems));
+            localReport.DataSources.Add(new ReportDataSource("CompanyDS",      dtCompany));
+            localReport.DataSources.Add(new ReportDataSource("CustomerDS",     dtCustomer));
+
+            return localReport.Render("PDF");
         }
 
         public byte[] GenerateQuotationPdf(Quotation quotation, CompanySettings company)
@@ -362,7 +479,7 @@ namespace HRPackage.Services
 
 
 
-        private void RegisterAndEnable(Report report, System.Collections.IEnumerable data, string name)
+        private void RegisterAndEnable(FRReport report, System.Collections.IEnumerable data, string name)
         {
             report.RegisterData(data, name);
             var ds = report.GetDataSource(name);
