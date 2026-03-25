@@ -1,9 +1,9 @@
-using Dapper;
-using HRPackage.Models;
-using HRPackage.Services;
+﻿using Dapper;
+using SmartPO.Models;
+using SmartPO.Services;
 using System.Data;
 
-namespace HRPackage.Repositories
+namespace SmartPO.Repositories
 {
     public interface IQuotationsRepository
     {

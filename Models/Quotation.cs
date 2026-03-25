@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace HRPackage.Models
+namespace SmartPO.Models
 {
     public class Quotation
     {

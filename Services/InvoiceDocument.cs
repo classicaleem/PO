@@ -1,9 +1,9 @@
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using HRPackage.Models;
+using SmartPO.Models;
 
-namespace HRPackage.Services
+namespace SmartPO.Services
 {
     public class InvoiceDocument : IDocument
     {
@@ -209,7 +209,7 @@ namespace HRPackage.Services
                 // Words & Grand Total
                 column.Item().Border(1).BorderTop(0).Row(row =>
                 {
-                     string words = HRPackage.Helpers.NumberToWords.ConvertAmount((double)InvoiceModel.GrandTotal);
+                     string words = SmartPO.Helpers.NumberToWords.ConvertAmount((double)InvoiceModel.GrandTotal);
                      row.RelativeItem(6.5f).BorderRight(1).Padding(5).Column(c => 
                      {
                          c.Item().Text("Grand Total in Words").Bold().FontSize(9);

@@ -1,0 +1,15 @@
+﻿{
+  "permissions": {
+    "allow": [
+      "Bash(find C:UsersCL-.geminiantigravityscratchSmartPO.claudeworktreesgracious-darwin -type f \\\\\\(-name *.rdlc -o -name *.frx -o -name *.frt -o -name *.repx \\\\\\))",
+      "Bash(find C:UsersCL-.geminiantigravityscratchSmartPO.claudeworktreesgracious-darwin -type f -name *Invoice*)",
+      "Bash(grep -E \"\\\\.\\(cs|cshtml\\)$\")",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet search:*)",
+      "Bash(dotnet package:*)",
+      "WebSearch",
+      "Bash(dotnet restore:*)"
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+@model Customer
+@{
+    ViewData["Title"] = "Customer Details";
+}
+
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-user me-3"></i>@Model.CustomerName</h1>
+            <p class="mb-0 opacity-75">@Model.CustomerCode</p>
+        </div>
+        <div>
+            <a asp-action="Edit" asp-route-id="@Model.CustomerId" class="btn btn-light me-2">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a asp-action="Index" class="btn btn-outline-light">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Customer Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Customer Code</label>
+                        <p class="fw-semibold">@Model.CustomerCode</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Customer Name</label>
+                        <p class="fw-semibold">@Model.CustomerName</p>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-muted small">Address</label>
+                        <p class="fw-semibold">@Model.FullAddress</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">State</label>
+                        <p><span class="badge bg-info fs-6">@Model.State (@Model.StateCode)</span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">Contact</label>
+                        <p class="fw-semibold">@(Model.ContactNumber ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label text-muted small">Email</label>
+                        <p class="fw-semibold">@(Model.EmailId ?? "N/A")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Tax Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label text-muted small">GST Number</label>
+                    <p class="fw-semibold"><code>@(Model.GstNumber ?? "N/A")</code></p>
+                </div>
+                <hr>
+                <div class="row g-3">
+                    <div class="col-4 text-center">
+                        <div class="p-2 bg-light rounded">
+                            <h4 class="mb-0 text-primary">@Model.DefaultCgstPercent%</h4>
+                            <small class="text-muted">CGST</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-2 bg-light rounded">
+                            <h4 class="mb-0 text-success">@Model.DefaultSgstPercent%</h4>
+                            <small class="text-muted">SGST</small>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="p-2 bg-light rounded">
+                            <h4 class="mb-0 text-info">@Model.DefaultIgstPercent%</h4>
+                            <small class="text-muted">IGST</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>Status</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Status</span>
+                    @if (Model.IsActive)
+                    {
+                        <span class="badge bg-success fs-6"><i class="fas fa-check me-1"></i>Active</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary fs-6"><i class="fas fa-times me-1"></i>Inactive</span>
+                    }
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>Created</span>
+                    <span>@Model.CreatedDate.ToString("MMM d, yyyy")</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

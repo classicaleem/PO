@@ -1,4 +1,4 @@
-using FastReport;
+﻿using FastReport;
 using FastReport.Export.PdfSimple;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -6,12 +6,12 @@ using QuestPDF.Helpers;
 using FastReport.Table;
 using FastReport.Utils;
 using FastReport.Data;
-using HRPackage.Models;
+using SmartPO.Models;
 using System.Drawing;
 using QuestPDF.Fluent;
 // using QuestPDF.Infrastructure; // Removed to avoid Color ambiguity
 
-namespace HRPackage.Services
+namespace SmartPO.Services
 {
     public interface IReportService
     {

@@ -1,9 +1,9 @@
-using QuestPDF.Fluent;
+﻿using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using HRPackage.Models;
+using SmartPO.Models;
 
-namespace HRPackage.Services
+namespace SmartPO.Services
 {
     public class QuotationDocument : IDocument
     {

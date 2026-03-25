@@ -1,7 +1,7 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace HRPackage.Models.ViewModels
+namespace SmartPO.Models.ViewModels
 {
     public class QuotationViewModel
     {

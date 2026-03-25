@@ -1,15 +1,15 @@
-using System.Security.Claims;
-using HRPackage.Models;
-using HRPackage.Models.ViewModels;
-using HRPackage.Repositories;
-using HRPackage.Models;
-using HRPackage.Models.ViewModels;
-using HRPackage.Repositories;
-using HRPackage.Services;
+﻿using System.Security.Claims;
+using SmartPO.Models;
+using SmartPO.Models.ViewModels;
+using SmartPO.Repositories;
+using SmartPO.Models;
+using SmartPO.Models.ViewModels;
+using SmartPO.Repositories;
+using SmartPO.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HRPackage.Controllers
+namespace SmartPO.Controllers
 {
     [Authorize]
     public class PurchaseOrdersController : Controller

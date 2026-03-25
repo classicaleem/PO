@@ -1,9 +1,9 @@
-using HRPackage.Models.ViewModels;
+﻿using SmartPO.Models.ViewModels;
 using Dapper;
-using HRPackage.Services;
+using SmartPO.Services;
 using System.Data;
 
-namespace HRPackage.Repositories
+namespace SmartPO.Repositories
 {
     public interface IReportRepository
     {

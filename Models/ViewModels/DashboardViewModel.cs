@@ -1,4 +1,4 @@
-namespace HRPackage.Models.ViewModels
+﻿namespace SmartPO.Models.ViewModels
 {
     public class DashboardViewModel
     {

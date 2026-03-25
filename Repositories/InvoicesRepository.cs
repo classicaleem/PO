@@ -1,10 +1,10 @@
-using Dapper;
-using HRPackage.Models;
-using HRPackage.Models.ViewModels;
-using HRPackage.Services;
+﻿using Dapper;
+using SmartPO.Models;
+using SmartPO.Models.ViewModels;
+using SmartPO.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace HRPackage.Repositories
+namespace SmartPO.Repositories
 {
     public interface IInvoicesRepository
     {

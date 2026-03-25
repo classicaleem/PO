@@ -1,5 +1,5 @@
-using HRPackage.Repositories;
-using HRPackage.Services;
+﻿using SmartPO.Repositories;
+using SmartPO.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
 QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
@@ -13,7 +13,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddSingleton<IDbConnectionFactory, SqlDbConnectionFactory>();
 
 // Configuration
-builder.Services.Configure<HRPackage.Models.CompanySettings>(builder.Configuration.GetSection("CompanySettings"));
+builder.Services.Configure<SmartPO.Models.CompanySettings>(builder.Configuration.GetSection("CompanySettings"));
 
 // Repositories
 builder.Services.AddScoped<IUsersRepository, UsersRepository>();

@@ -1,7 +1,7 @@
-using System.Data;
+﻿using System.Data;
 using Microsoft.Data.SqlClient;
 
-namespace HRPackage.Services
+namespace SmartPO.Services
 {
     public interface IDbConnectionFactory
     {

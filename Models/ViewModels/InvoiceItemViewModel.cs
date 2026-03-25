@@ -1,6 +1,6 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace HRPackage.Models.ViewModels
+namespace SmartPO.Models.ViewModels
 {
     public class InvoiceItemViewModel
     {

@@ -1,8 +1,8 @@
-using Dapper;
-using HRPackage.Models;
-using HRPackage.Services;
+﻿using Dapper;
+using SmartPO.Models;
+using SmartPO.Services;
 
-namespace HRPackage.Repositories
+namespace SmartPO.Repositories
 {
     public interface IUsersRepository
     {

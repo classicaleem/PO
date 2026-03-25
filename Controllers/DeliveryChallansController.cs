@@ -1,14 +1,14 @@
-using System.Security.Claims;
-using HRPackage.Models;
-using HRPackage.Models.ViewModels;
-using HRPackage.Repositories;
+﻿using System.Security.Claims;
+using SmartPO.Models;
+using SmartPO.Models.ViewModels;
+using SmartPO.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using HRPackage.Services;
+using SmartPO.Services;
 
-namespace HRPackage.Controllers
+namespace SmartPO.Controllers
 {
     [Authorize]
     public class DeliveryChallansController : Controller

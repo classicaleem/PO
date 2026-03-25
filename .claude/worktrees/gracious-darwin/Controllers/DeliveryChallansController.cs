@@ -1,0 +1,130 @@
+﻿using System.Security.Claims;
+using SmartPO.Models;
+using SmartPO.Models.ViewModels;
+using SmartPO.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using SmartPO.Services;
+
+namespace SmartPO.Controllers
+{
+    [Authorize]
+    public class DeliveryChallansController : Controller
+    {
+        private readonly IDeliveryChallansRepository _dcRepository;
+        private readonly ICustomersRepository _customersRepository;
+        private readonly IReportService _reportService;
+        private readonly Microsoft.Extensions.Options.IOptions<CompanySettings> _companySettings;
+
+        public DeliveryChallansController(
+            IDeliveryChallansRepository dcRepository, 
+            ICustomersRepository customersRepository,
+            IReportService reportService,
+            Microsoft.Extensions.Options.IOptions<CompanySettings> companySettings)
+        {
+            _dcRepository = dcRepository;
+            _customersRepository = customersRepository;
+            _reportService = reportService;
+            _companySettings = companySettings;
+        }
+
+        public async Task<IActionResult> Index()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetDeliveryChallansJson(DateTime? fromDate, DateTime? toDate)
+        {
+            var end = toDate ?? DateTime.Today;
+            var start = fromDate ?? DateTime.Today.AddDays(-7);
+            var endOfDay = end.Date.AddDays(1).AddTicks(-1);
+
+            var list = await _dcRepository.GetByDateRangeAsync(start, endOfDay);
+            return Json(list);
+        }
+
+        public async Task<IActionResult> Create()
+        {
+            var model = new DeliveryChallanViewModel
+            {
+                DcNumber = await _dcRepository.GenerateNextDcNumberAsync(),
+                DcDate = DateTime.Today,
+                Customers = await GetCustomerListAsync()
+            };
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Create(DeliveryChallanViewModel model)
+        {
+            if (model.Items == null || !model.Items.Any(i => !string.IsNullOrWhiteSpace(i.Description)))
+            {
+                ModelState.AddModelError("", "At least one item description is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                model.Customers = await GetCustomerListAsync();
+                return View(model);
+            }
+
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+            var dc = new DeliveryChallan
+            {
+                DcNumber = model.DcNumber,
+                DcDate = model.DcDate,
+                CustomerId = model.CustomerId,
+                TargetCompany = model.TargetCompany,
+                VehicleNo = model.VehicleNo,
+                CreatedByUserId = userId
+            };
+
+            var items = model.Items
+                .Where(i => !string.IsNullOrWhiteSpace(i.Description))
+                .Select(i => new DeliveryChallanItem
+                {
+                    Description = i.Description,
+                    Quantity = i.Quantity,
+                    Unit = i.Unit ?? "NO",
+                    Remarks = i.Remarks
+                }).ToList();
+
+            await _dcRepository.CreateAsync(dc, items);
+            TempData["Success"] = "Delivery Challan created successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> DownloadPdf(int id)
+        {
+            var dc = await _dcRepository.GetByIdAsync(id);
+            if (dc == null) return NotFound();
+
+            var pdfBytes = _reportService.GenerateDeliveryChallanPdf(dc, _companySettings.Value);
+            return File(pdfBytes, "application/pdf", $"DC_{dc.DcNumber.Replace("/", "_")}.pdf");
+        }
+
+
+        
+        public async Task<IActionResult> Delete(int id)
+        {
+            await _dcRepository.SoftDeleteAsync(id);
+             TempData["Success"] = "DC Deleted.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<List<SelectListItem>> GetCustomerListAsync()
+        {
+            var customers = await _customersRepository.GetAllAsync();
+            return customers.Select(c => new SelectListItem
+            {
+                Value = c.CustomerId.ToString(),
+                Text = c.CustomerName
+            }).ToList();
+        }
+    }
+}

@@ -1,11 +1,11 @@
-using System.Security.Claims;
-using HRPackage.Models.ViewModels;
-using HRPackage.Repositories;
+﻿using System.Security.Claims;
+using SmartPO.Models.ViewModels;
+using SmartPO.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HRPackage.Controllers
+namespace SmartPO.Controllers
 {
     public class AccountController : Controller
     {

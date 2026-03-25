@@ -1,0 +1,177 @@
+@model CustomerViewModel
+@{
+    ViewData["Title"] = "Edit Customer";
+}
+
+<!-- Page Header -->
+<div class="page-header" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h1><i class="fas fa-user-edit me-3"></i>Edit Customer</h1>
+            <p class="mb-0 opacity-75">Update customer information</p>
+        </div>
+        <a asp-action="Index" class="btn btn-light">
+            <i class="fas fa-arrow-left me-2"></i>Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-body p-4">
+                <form asp-action="Edit" method="post">
+                    <input type="hidden" asp-for="CustomerId" />
+                    <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
+                    
+                    <div class="row g-4">
+                        <!-- Basic Info -->
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Basic Information</h5>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="CustomerCode" class="form-label fw-semibold">Customer Code *</label>
+                            <input asp-for="CustomerCode" class="form-control" placeholder="e.g., CUST001" />
+                            <span asp-validation-for="CustomerCode" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-8">
+                            <label asp-for="CustomerName" class="form-label fw-semibold">Customer Name *</label>
+                            <input asp-for="CustomerName" class="form-control" placeholder="Enter customer name" />
+                            <span asp-validation-for="CustomerName" class="text-danger"></span>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-map-marker-alt me-2 text-primary"></i>Address</h5>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="AddressLine1" class="form-label fw-semibold">Address Line 1</label>
+                            <input asp-for="AddressLine1" class="form-control" />
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label asp-for="AddressLine2" class="form-label fw-semibold">Address Line 2</label>
+                            <input asp-for="AddressLine2" class="form-control" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="City" class="form-label fw-semibold">City</label>
+                            <input asp-for="City" class="form-control" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="State" class="form-label fw-semibold">State *</label>
+                            <select asp-for="State" asp-items="Model.States" class="form-select select2-state" id="stateSelect">
+                                <option value="">-- Select State --</option>
+                            </select>
+                            <span asp-validation-for="State" class="text-danger"></span>
+                            <input type="hidden" asp-for="StateCode" id="stateCode" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="Pincode" class="form-label fw-semibold">Pincode</label>
+                            <input asp-for="Pincode" class="form-control" />
+                        </div>
+
+                        <!-- Contact -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-phone me-2 text-primary"></i>Contact & Tax Information</h5>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="ContactNumber" class="form-label fw-semibold">Contact Number</label>
+                            <input asp-for="ContactNumber" class="form-control" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="EmailId" class="form-label fw-semibold">Email</label>
+                            <input asp-for="EmailId" class="form-control" type="email" />
+                            <span asp-validation-for="EmailId" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="GstNumber" class="form-label fw-semibold">GST Number</label>
+                            <input asp-for="GstNumber" class="form-control" />
+                        </div>
+
+                        <!-- Tax Defaults -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3"><i class="fas fa-percent me-2 text-primary"></i>Default Tax Rates</h5>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="DefaultCgstPercent" class="form-label fw-semibold">CGST %</label>
+                            <input asp-for="DefaultCgstPercent" class="form-control" type="number" step="0.01" min="0" max="100" id="cgstPercent" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="DefaultSgstPercent" class="form-label fw-semibold">SGST %</label>
+                            <input asp-for="DefaultSgstPercent" class="form-control" type="number" step="0.01" min="0" max="100" id="sgstPercent" />
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label asp-for="DefaultIgstPercent" class="form-label fw-semibold">IGST %</label>
+                            <input asp-for="DefaultIgstPercent" class="form-control" type="number" step="0.01" min="0" max="100" id="igstPercent" />
+                        </div>
+
+                        <!-- Status -->
+                        <div class="col-12 mt-4">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label asp-for="IsActive" class="form-check-label">Active</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-2"></i>Update Customer
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function() {
+            $('.select2-state').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Search for a state...',
+                allowClear: true
+            });
+
+            $('#stateSelect').on('change', function() {
+                var state = $(this).val();
+                if (state) {
+                    var selectedText = $(this).find('option:selected').text();
+                    var codeMatch = selectedText.match(/\(([^)]+)\)/);
+                    if (codeMatch) {
+                        $('#stateCode').val(codeMatch[1]);
+                    }
+                    
+                    $.get('@Url.Action("GetTaxDefaults", "Customers")', { state: state }, function(data) {
+                        $('#cgstPercent').val(data.cgst);
+                        $('#sgstPercent').val(data.sgst);
+                        $('#igstPercent').val(data.igst);
+                    });
+                }
+            });
+
+            if ($('.field-validation-error').length > 0) {
+                $('.alert-danger').show();
+            }
+        });
+    </script>
+}

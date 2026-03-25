@@ -1,4 +1,4 @@
-namespace HRPackage.Models
+﻿namespace SmartPO.Models
 {
     public class InvoiceItem
     {

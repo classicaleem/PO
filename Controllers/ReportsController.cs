@@ -1,8 +1,8 @@
-using HRPackage.Repositories;
+﻿using SmartPO.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HRPackage.Controllers
+namespace SmartPO.Controllers
 {
     [Authorize]
     public class ReportsController : Controller

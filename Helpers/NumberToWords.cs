@@ -1,6 +1,6 @@
-using System;
+﻿using System;
 
-namespace HRPackage.Helpers
+namespace SmartPO.Helpers
 {
     public static class NumberToWords
     {
