@@ -2,8 +2,6 @@
 using SmartPO.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 
-QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container

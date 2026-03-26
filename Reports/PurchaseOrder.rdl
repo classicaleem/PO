@@ -1,0 +1,583 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition"
+        xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+
+  <DataSources>
+    <DataSource Name="PoHeaderDS">
+      <ConnectionProperties>
+        <DataProvider>System.Data.DataSet</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+      <rd:DataSourceID>c3d4e5f6-a7b8-9012-cdef-123456789abc</rd:DataSourceID>
+    </DataSource>
+    <DataSource Name="PoItemsDS">
+      <ConnectionProperties>
+        <DataProvider>System.Data.DataSet</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+      <rd:DataSourceID>d4e5f6a7-b8c9-0123-defa-23456789abcd</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+
+  <DataSets>
+    <DataSet Name="PoHeader">
+      <Query>
+        <DataSourceName>PoHeaderDS</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+      <Fields>
+        <Field Name="PoNumber">       <DataField>PoNumber</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="PoDate">         <DataField>PoDate</DataField>         <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromName">       <DataField>FromName</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromAddress">    <DataField>FromAddress</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromEmail">      <DataField>FromEmail</DataField>      <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromPhone">      <DataField>FromPhone</DataField>      <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromGst">        <DataField>FromGst</DataField>        <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerName">   <DataField>CustomerName</DataField>   <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerAddress"><DataField>CustomerAddress</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerGst">    <DataField>CustomerGst</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CgstPercent">    <DataField>CgstPercent</DataField>    <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="SgstPercent">    <DataField>SgstPercent</DataField>    <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="IgstPercent">    <DataField>IgstPercent</DataField>    <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="TaxAmount">      <DataField>TaxAmount</DataField>      <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="RoundOff">       <DataField>RoundOff</DataField>       <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="GrandTotal">     <DataField>GrandTotal</DataField>     <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="AmountInWords">  <DataField>AmountInWords</DataField>  <rd:TypeName>System.String</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+
+    <DataSet Name="PoItems">
+      <Query>
+        <DataSourceName>PoItemsDS</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+      <Fields>
+        <Field Name="SNo">        <DataField>SNo</DataField>        <rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="Description"><DataField>Description</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="HsnCode">    <DataField>HsnCode</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="UnitPrice">  <DataField>UnitPrice</DataField>  <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="Quantity">   <DataField>Quantity</DataField>   <rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="LineTotal">  <DataField>LineTotal</DataField>  <rd:TypeName>System.Decimal</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+
+          <!-- ═══ SECTION 1: TITLE BAR ═══ -->
+          <Tablix Name="PO_TitleBar">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>5cm</Width></TablixColumn>
+                <TablixColumn><Width>9cm</Width></TablixColumn>
+                <TablixColumn><Width>5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>1.5cm</Height>
+                  <TablixCells>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_CompanyName">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>=First(Fields!FromName.Value,"PoHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>10pt</FontSize><FontWeight>Bold</FontWeight><Color>#003366</Color></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign>
+                          <PaddingLeft>5pt</PaddingLeft>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_Title">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>PURCHASE ORDER</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>18pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                          </TextRun></TextRuns>
+                          <Style><TextAlign>Center</TextAlign></Style>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_OriginalCopy">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>Original Copy</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><Color>#FFFFFF</Color></Style>
+                          </TextRun></TextRuns>
+                          <Style><TextAlign>Center</TextAlign></Style>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <BackgroundColor>#003366</BackgroundColor>
+                          <VerticalAlign>Middle</VerticalAlign>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>PoHeader</DataSetName>
+            <Top>0cm</Top><Left>0cm</Left><Width>19cm</Width><Height>1.5cm</Height><ZIndex>0</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 2: FROM | PO NUMBER & DATE ═══ -->
+          <Tablix Name="PO_FromSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.2cm</Height>
+                  <TablixCells>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_FromDetails">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="From : " &amp; First(Fields!FromName.Value,"PoHeader") &amp; Chr(10) &amp; First(Fields!FromAddress.Value,"PoHeader") &amp; Chr(10) &amp; "Email : " &amp; First(Fields!FromEmail.Value,"PoHeader") &amp; Chr(10) &amp; "Ph : " &amp; First(Fields!FromPhone.Value,"PoHeader") &amp; Chr(10) &amp; "GST NO : " &amp; First(Fields!FromGst.Value,"PoHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign>
+                          <PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_Meta">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="PO Number  :  " &amp; First(Fields!PoNumber.Value,"PoHeader") &amp; Chr(10) &amp; "PO Date      :  " &amp; First(Fields!PoDate.Value,"PoHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign>
+                          <PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>PoHeader</DataSetName>
+            <Top>1.5cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.2cm</Height><ZIndex>1</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 3: TO / VENDOR ═══ -->
+          <Tablix Name="PO_ToSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>19cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.5cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_VendorDetails">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="Vendor / To : " &amp; First(Fields!CustomerName.Value,"PoHeader") &amp; Chr(10) &amp; First(Fields!CustomerAddress.Value,"PoHeader") &amp; Chr(10) &amp; "GST NO : " &amp; First(Fields!CustomerGst.Value,"PoHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign>
+                          <PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>PoHeader</DataSetName>
+            <Top>3.7cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.5cm</Height><ZIndex>2</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 4: ITEMS TABLE ═══ -->
+          <Tablix Name="PO_ItemsTable">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>1cm</Width></TablixColumn>
+                <TablixColumn><Width>7.5cm</Width></TablixColumn>
+                <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                <TablixColumn><Width>2cm</Width></TablixColumn>
+                <TablixColumn><Width>3.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+
+                <!-- Header Row -->
+                <TablixRow>
+                  <Height>0.7cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_H_SNo">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>S.No</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_H_Desc">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Description</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_H_Hsn">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>HSN Code</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_H_UnitPrice">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Unit Price</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_H_Qty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Qty</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_H_Total">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Amount</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <!-- Detail Row -->
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_D_SNo">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!SNo.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_D_Desc">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Description.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_D_Hsn">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!HsnCode.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_D_UnitPrice">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!UnitPrice.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_D_Qty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Quantity.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_D_Total">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!LineTotal.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <!-- Footer Row -->
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_F_Label">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Total</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_F_B1">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_F_B2">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_F_B3">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_F_TotalQty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!Quantity.Value)</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="PO_F_TotalAmt">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!LineTotal.Value)</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember><KeepWithGroup>After</KeepWithGroup><RepeatOnNewPage>true</RepeatOnNewPage></TablixMember>
+                <TablixMember><Group Name="PO_ItemsDetail"/></TablixMember>
+                <TablixMember/>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>PoItems</DataSetName>
+            <Top>6.2cm</Top><Left>0cm</Left><Width>19cm</Width><ZIndex>3</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 5: TAX SUMMARY (right side) ═══ -->
+          <Tablix Name="PO_TaxTable">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>4.75cm</Width></TablixColumn>
+                <TablixColumn><Width>4.75cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_CgstLabel">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>="CGST @" &amp; First(Fields!CgstPercent.Value,"PoHeader") &amp; "%"</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="PO_CgstValue">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=First(Fields!TaxAmount.Value,"PoHeader") * First(Fields!CgstPercent.Value,"PoHeader") / IIF((First(Fields!CgstPercent.Value,"PoHeader")+First(Fields!SgstPercent.Value,"PoHeader")+First(Fields!IgstPercent.Value,"PoHeader"))=0,1,(First(Fields!CgstPercent.Value,"PoHeader")+First(Fields!SgstPercent.Value,"PoHeader")+First(Fields!IgstPercent.Value,"PoHeader")))</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_SgstLabel">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>="SGST @" &amp; First(Fields!SgstPercent.Value,"PoHeader") &amp; "%"</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="PO_SgstValue">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=First(Fields!TaxAmount.Value,"PoHeader") * First(Fields!SgstPercent.Value,"PoHeader") / IIF((First(Fields!CgstPercent.Value,"PoHeader")+First(Fields!SgstPercent.Value,"PoHeader")+First(Fields!IgstPercent.Value,"PoHeader"))=0,1,(First(Fields!CgstPercent.Value,"PoHeader")+First(Fields!SgstPercent.Value,"PoHeader")+First(Fields!IgstPercent.Value,"PoHeader")))</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_IgstLabel">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>="IGST @" &amp; First(Fields!IgstPercent.Value,"PoHeader") &amp; "%"</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="PO_IgstValue">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=First(Fields!TaxAmount.Value,"PoHeader") * First(Fields!IgstPercent.Value,"PoHeader") / IIF((First(Fields!CgstPercent.Value,"PoHeader")+First(Fields!SgstPercent.Value,"PoHeader")+First(Fields!IgstPercent.Value,"PoHeader"))=0,1,(First(Fields!CgstPercent.Value,"PoHeader")+First(Fields!SgstPercent.Value,"PoHeader")+First(Fields!IgstPercent.Value,"PoHeader")))</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_RoundOffLabel">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Round Off</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="PO_RoundOffValue">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=First(Fields!RoundOff.Value,"PoHeader")</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <TablixRow>
+                  <Height>0.7cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="PO_GrandTotalLabel">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Grand Total (Rs.)</Value><Style><FontFamily>Arial</FontFamily><FontSize>9pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+                    <TablixCell><CellContents><Textbox Name="PO_GrandTotalValue">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=First(Fields!GrandTotal.Value,"PoHeader")</Value><Style><FontFamily>Arial</FontFamily><FontSize>9pt</FontSize><FontWeight>Bold</FontWeight><Format>N0</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>PoHeader</DataSetName>
+            <Top>20cm</Top><Left>9.5cm</Left><Width>9.5cm</Width><Height>3.1cm</Height><ZIndex>4</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 6: AMOUNT IN WORDS ═══ -->
+          <Tablix Name="PO_AmountWords">
+            <TablixBody>
+              <TablixColumns><TablixColumn><Width>19cm</Width></TablixColumn></TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>0.7cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_AmountWordsText">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>="Rupees " &amp; First(Fields!AmountInWords.Value,"PoHeader")</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                        </TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign><PaddingLeft>4pt</PaddingLeft>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>PoHeader</DataSetName>
+            <Top>23.1cm</Top><Left>0cm</Left><Width>19cm</Width><Height>0.7cm</Height><ZIndex>5</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 7: SIGNATURE ═══ -->
+          <Tablix Name="PO_SignatureSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.5cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_VendorSeal">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>Vendor Seal &amp; Signature</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                        </TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Bottom</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingBottom>4pt</PaddingBottom>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                    <TablixCell><CellContents>
+                      <Textbox Name="PO_AuthSign">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>="For " &amp; First(Fields!FromName.Value,"PoHeader") &amp; Chr(10) &amp; Chr(10) &amp; Chr(10) &amp; "Authorised Signatory"</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                        </TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingRight>4pt</PaddingRight><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>PoHeader</DataSetName>
+            <Top>23.8cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.5cm</Height><ZIndex>6</ZIndex>
+          </Tablix>
+
+        </ReportItems>
+        <Height>28cm</Height>
+        <Style/>
+      </Body>
+      <Width>19cm</Width>
+      <Page>
+        <TopMargin>1cm</TopMargin>
+        <BottomMargin>1cm</BottomMargin>
+        <LeftMargin>1cm</LeftMargin>
+        <RightMargin>1cm</RightMargin>
+      </Page>
+    </ReportSection>
+  </ReportSections>
+
+  <rd:ReportUnitType>Cm</rd:ReportUnitType>
+  <rd:ReportID>e5f6a7b8-c9d0-1234-efab-345678901234</rd:ReportID>
+</Report>

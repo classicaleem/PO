@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(del \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\InvoiceDocument.cs\" \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\QuotationDocument.cs\" \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\DeliveryChallanDocument.cs\")"
+    ]
+  }
+}

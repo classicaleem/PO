@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition"
+        xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+
+  <DataSources>
+    <DataSource Name="QuotationHeaderDS">
+      <ConnectionProperties>
+        <DataProvider>System.Data.DataSet</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+      <rd:DataSourceID>f6a7b8c9-d0e1-2345-fabc-456789012345</rd:DataSourceID>
+    </DataSource>
+    <DataSource Name="QuotationItemsDS">
+      <ConnectionProperties>
+        <DataProvider>System.Data.DataSet</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+      <rd:DataSourceID>a7b8c9d0-e1f2-3456-abcd-567890123456</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+
+  <DataSets>
+    <DataSet Name="QuotationHeader">
+      <Query>
+        <DataSourceName>QuotationHeaderDS</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+      <Fields>
+        <Field Name="QuotationNo">     <DataField>QuotationNo</DataField>     <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="QuotationDate">   <DataField>QuotationDate</DataField>   <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="ValidUntil">      <DataField>ValidUntil</DataField>      <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromName">        <DataField>FromName</DataField>        <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromAddress">     <DataField>FromAddress</DataField>     <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromEmail">       <DataField>FromEmail</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromPhone">       <DataField>FromPhone</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromGst">         <DataField>FromGst</DataField>         <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerName">    <DataField>CustomerName</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerAddress"> <DataField>CustomerAddress</DataField> <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerGst">     <DataField>CustomerGst</DataField>     <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerPhone">   <DataField>CustomerPhone</DataField>   <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="TotalAmount">     <DataField>TotalAmount</DataField>     <rd:TypeName>System.Decimal</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+
+    <DataSet Name="QuotationItems">
+      <Query>
+        <DataSourceName>QuotationItemsDS</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+      <Fields>
+        <Field Name="SNo">        <DataField>SNo</DataField>        <rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="Description"><DataField>Description</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="UnitPrice">  <DataField>UnitPrice</DataField>  <rd:TypeName>System.Decimal</rd:TypeName></Field>
+        <Field Name="Quantity">   <DataField>Quantity</DataField>   <rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="TotalAmount"><DataField>TotalAmount</DataField><rd:TypeName>System.Decimal</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+
+          <!-- ═══ SECTION 1: TITLE BAR ═══ -->
+          <Tablix Name="QT_TitleBar">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>5cm</Width></TablixColumn>
+                <TablixColumn><Width>9cm</Width></TablixColumn>
+                <TablixColumn><Width>5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>1.5cm</Height>
+                  <TablixCells>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_CompanyName">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>=First(Fields!FromName.Value,"QuotationHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>10pt</FontSize><FontWeight>Bold</FontWeight><Color>#003366</Color></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign><PaddingLeft>5pt</PaddingLeft>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_Title">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>QUOTATION</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>20pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                          </TextRun></TextRuns>
+                          <Style><TextAlign>Center</TextAlign></Style>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_Copy">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>Original Copy</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><Color>#FFFFFF</Color></Style>
+                          </TextRun></TextRuns>
+                          <Style><TextAlign>Center</TextAlign></Style>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <BackgroundColor>#003366</BackgroundColor><VerticalAlign>Middle</VerticalAlign>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>QuotationHeader</DataSetName>
+            <Top>0cm</Top><Left>0cm</Left><Width>19cm</Width><Height>1.5cm</Height><ZIndex>0</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 2: FROM | QUOTATION NO & DATE ═══ -->
+          <Tablix Name="QT_FromSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.2cm</Height>
+                  <TablixCells>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_FromDetails">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="From : " &amp; First(Fields!FromName.Value,"QuotationHeader") &amp; Chr(10) &amp; First(Fields!FromAddress.Value,"QuotationHeader") &amp; Chr(10) &amp; "Email : " &amp; First(Fields!FromEmail.Value,"QuotationHeader") &amp; Chr(10) &amp; "Ph : " &amp; First(Fields!FromPhone.Value,"QuotationHeader") &amp; Chr(10) &amp; "GST NO : " &amp; First(Fields!FromGst.Value,"QuotationHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_Meta">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="Quotation No    :  " &amp; First(Fields!QuotationNo.Value,"QuotationHeader") &amp; Chr(10) &amp; "Quotation Date :  " &amp; First(Fields!QuotationDate.Value,"QuotationHeader") &amp; Chr(10) &amp; "Valid Until        :  " &amp; First(Fields!ValidUntil.Value,"QuotationHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>QuotationHeader</DataSetName>
+            <Top>1.5cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.2cm</Height><ZIndex>1</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 3: TO / CUSTOMER ═══ -->
+          <Tablix Name="QT_ToSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>19cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.2cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_CustomerDetails">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="To : " &amp; First(Fields!CustomerName.Value,"QuotationHeader") &amp; Chr(10) &amp; First(Fields!CustomerAddress.Value,"QuotationHeader") &amp; Chr(10) &amp; "Ph : " &amp; First(Fields!CustomerPhone.Value,"QuotationHeader") &amp; Chr(10) &amp; "GST NO : " &amp; First(Fields!CustomerGst.Value,"QuotationHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>QuotationHeader</DataSetName>
+            <Top>3.7cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.2cm</Height><ZIndex>2</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 4: ITEMS TABLE ═══ -->
+          <Tablix Name="QT_ItemsTable">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>1cm</Width></TablixColumn>
+                <TablixColumn><Width>10cm</Width></TablixColumn>
+                <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                <TablixColumn><Width>3cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+
+                <!-- Header Row -->
+                <TablixRow>
+                  <Height>0.7cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="QT_H_SNo">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>S.No</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_H_Desc">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Description</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_H_UnitPrice">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Unit Price</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_H_Qty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Qty</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_H_Total">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Total Amount</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <!-- Detail Row -->
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="QT_D_SNo">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!SNo.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_D_Desc">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Description.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_D_UnitPrice">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!UnitPrice.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_D_Qty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Quantity.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_D_Total">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!TotalAmount.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <!-- Footer Row -->
+                <TablixRow>
+                  <Height>0.7cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="QT_F_Label">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Total</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_F_B1">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_F_B2">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_F_TotalQty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!Quantity.Value)</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="QT_F_GrandTotal">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!TotalAmount.Value)</Value><Style><FontFamily>Arial</FontFamily><FontSize>9pt</FontSize><FontWeight>Bold</FontWeight><Format>N2</Format></Style></TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign><PaddingRight>3pt</PaddingRight></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember><KeepWithGroup>After</KeepWithGroup><RepeatOnNewPage>true</RepeatOnNewPage></TablixMember>
+                <TablixMember><Group Name="QT_ItemsDetail"/></TablixMember>
+                <TablixMember/>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>QuotationItems</DataSetName>
+            <Top>5.9cm</Top><Left>0cm</Left><Width>19cm</Width><ZIndex>3</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 5: TERMS & SIGNATURE ═══ -->
+          <Tablix Name="QT_SignatureSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.5cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_Terms">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>Terms &amp; Conditions:&#xA;1. Prices are valid until the date mentioned above.&#xA;2. Subject to our standard terms and conditions.&#xA;3. GST extra as applicable.</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>7pt</FontSize></Style>
+                        </TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                    <TablixCell><CellContents>
+                      <Textbox Name="QT_AuthSign">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>="For " &amp; First(Fields!FromName.Value,"QuotationHeader") &amp; Chr(10) &amp; Chr(10) &amp; Chr(10) &amp; "Authorised Signatory"</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                        </TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingRight>4pt</PaddingRight><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>QuotationHeader</DataSetName>
+            <Top>24cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.5cm</Height><ZIndex>4</ZIndex>
+          </Tablix>
+
+        </ReportItems>
+        <Height>28cm</Height>
+        <Style/>
+      </Body>
+      <Width>19cm</Width>
+      <Page>
+        <TopMargin>1cm</TopMargin>
+        <BottomMargin>1cm</BottomMargin>
+        <LeftMargin>1cm</LeftMargin>
+        <RightMargin>1cm</RightMargin>
+      </Page>
+    </ReportSection>
+  </ReportSections>
+
+  <rd:ReportUnitType>Cm</rd:ReportUnitType>
+  <rd:ReportID>b8c9d0e1-f2a3-4567-bcde-678901234567</rd:ReportID>
+</Report>

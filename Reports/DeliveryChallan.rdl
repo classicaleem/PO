@@ -1,0 +1,442 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition"
+        xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <AutoRefresh>0</AutoRefresh>
+
+  <DataSources>
+    <DataSource Name="DcHeaderDS">
+      <ConnectionProperties>
+        <DataProvider>System.Data.DataSet</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+      <rd:DataSourceID>c9d0e1f2-a3b4-5678-cdef-789012345678</rd:DataSourceID>
+    </DataSource>
+    <DataSource Name="DcItemsDS">
+      <ConnectionProperties>
+        <DataProvider>System.Data.DataSet</DataProvider>
+        <ConnectString></ConnectString>
+      </ConnectionProperties>
+      <rd:DataSourceID>d0e1f2a3-b4c5-6789-defa-890123456789</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+
+  <DataSets>
+    <DataSet Name="DcHeader">
+      <Query>
+        <DataSourceName>DcHeaderDS</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+      <Fields>
+        <Field Name="DcNumber">       <DataField>DcNumber</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="DcDate">         <DataField>DcDate</DataField>         <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="VehicleNo">      <DataField>VehicleNo</DataField>      <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromName">       <DataField>FromName</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromAddress">    <DataField>FromAddress</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromEmail">      <DataField>FromEmail</DataField>      <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromPhone">      <DataField>FromPhone</DataField>      <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="FromGst">        <DataField>FromGst</DataField>        <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerName">   <DataField>CustomerName</DataField>   <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerAddress"><DataField>CustomerAddress</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="CustomerGst">    <DataField>CustomerGst</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="TargetCompany">  <DataField>TargetCompany</DataField>  <rd:TypeName>System.String</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+
+    <DataSet Name="DcItems">
+      <Query>
+        <DataSourceName>DcItemsDS</DataSourceName>
+        <CommandText></CommandText>
+      </Query>
+      <Fields>
+        <Field Name="SNo">        <DataField>SNo</DataField>        <rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="Description"><DataField>Description</DataField><rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="Quantity">   <DataField>Quantity</DataField>   <rd:TypeName>System.Int32</rd:TypeName></Field>
+        <Field Name="Unit">       <DataField>Unit</DataField>       <rd:TypeName>System.String</rd:TypeName></Field>
+        <Field Name="Remarks">    <DataField>Remarks</DataField>    <rd:TypeName>System.String</rd:TypeName></Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+
+  <ReportSections>
+    <ReportSection>
+      <Body>
+        <ReportItems>
+
+          <!-- ═══ SECTION 1: TITLE BAR ═══ -->
+          <Tablix Name="DC_TitleBar">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>5cm</Width></TablixColumn>
+                <TablixColumn><Width>9cm</Width></TablixColumn>
+                <TablixColumn><Width>5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>1.5cm</Height>
+                  <TablixCells>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_CompanyName">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>=First(Fields!FromName.Value,"DcHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>10pt</FontSize><FontWeight>Bold</FontWeight><Color>#003366</Color></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign><PaddingLeft>5pt</PaddingLeft>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_Title">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>DELIVERY CHALLAN</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>16pt</FontSize><FontWeight>Bold</FontWeight></Style>
+                          </TextRun></TextRuns>
+                          <Style><TextAlign>Center</TextAlign></Style>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Middle</VerticalAlign>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_Copy">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>Original Copy</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight><Color>#FFFFFF</Color></Style>
+                          </TextRun></TextRuns>
+                          <Style><TextAlign>Center</TextAlign></Style>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <BackgroundColor>#003366</BackgroundColor><VerticalAlign>Middle</VerticalAlign>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>DcHeader</DataSetName>
+            <Top>0cm</Top><Left>0cm</Left><Width>19cm</Width><Height>1.5cm</Height><ZIndex>0</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 2: FROM | DC NO & DATE ═══ -->
+          <Tablix Name="DC_FromSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.2cm</Height>
+                  <TablixCells>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_FromDetails">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="From : " &amp; First(Fields!FromName.Value,"DcHeader") &amp; Chr(10) &amp; First(Fields!FromAddress.Value,"DcHeader") &amp; Chr(10) &amp; "Email : " &amp; First(Fields!FromEmail.Value,"DcHeader") &amp; Chr(10) &amp; "Ph : " &amp; First(Fields!FromPhone.Value,"DcHeader") &amp; Chr(10) &amp; "GST NO : " &amp; First(Fields!FromGst.Value,"DcHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_Meta">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="DC Number   :  " &amp; First(Fields!DcNumber.Value,"DcHeader") &amp; Chr(10) &amp; "DC Date        :  " &amp; First(Fields!DcDate.Value,"DcHeader") &amp; Chr(10) &amp; "Vehicle No    :  " &amp; First(Fields!VehicleNo.Value,"DcHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>DcHeader</DataSetName>
+            <Top>1.5cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.2cm</Height><ZIndex>1</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 3: TO / CUSTOMER ═══ -->
+          <Tablix Name="DC_ToSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.2cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_CustomerDetails">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="To : " &amp; First(Fields!CustomerName.Value,"DcHeader") &amp; Chr(10) &amp; First(Fields!CustomerAddress.Value,"DcHeader") &amp; Chr(10) &amp; "GST NO : " &amp; First(Fields!CustomerGst.Value,"DcHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_TargetCompany">
+                        <Paragraphs><Paragraph>
+                          <TextRuns><TextRun>
+                            <Value>="Consignee / Target Company :" &amp; Chr(10) &amp; First(Fields!TargetCompany.Value,"DcHeader")</Value>
+                            <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                          </TextRun></TextRuns>
+                          <Style/>
+                        </Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>DcHeader</DataSetName>
+            <Top>3.7cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.2cm</Height><ZIndex>2</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 4: ITEMS TABLE ═══ -->
+          <Tablix Name="DC_ItemsTable">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>1cm</Width></TablixColumn>
+                <TablixColumn><Width>9cm</Width></TablixColumn>
+                <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                <TablixColumn><Width>2.5cm</Width></TablixColumn>
+                <TablixColumn><Width>4cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+
+                <!-- Header Row -->
+                <TablixRow>
+                  <Height>0.7cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="DC_H_SNo">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>S.No</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_H_Desc">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Description</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_H_Qty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Quantity</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_H_Unit">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Unit</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_H_Remarks">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Remarks</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <!-- Detail Row -->
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="DC_D_SNo">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!SNo.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_D_Desc">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Description.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_D_Qty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Quantity.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_D_Unit">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Unit.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_D_Remarks">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Remarks.Value</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+                <!-- Footer Row -->
+                <TablixRow>
+                  <Height>0.6cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents><Textbox Name="DC_F_Label">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>Total</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign><PaddingLeft>3pt</PaddingLeft></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_F_B1">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_F_TotalQty">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!Quantity.Value)</Value><Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns><Style><TextAlign>Center</TextAlign></Style></Paragraph></Paragraphs>
+                      <CanGrow>true</CanGrow>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor><VerticalAlign>Middle</VerticalAlign></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_F_B2">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor></Style>
+                    </Textbox></CellContents></TablixCell>
+
+                    <TablixCell><CellContents><Textbox Name="DC_F_B3">
+                      <Paragraphs><Paragraph><TextRuns><TextRun><Value> </Value><Style/></TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                      <Style><Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border><BackgroundColor>#DDDDDD</BackgroundColor></Style>
+                    </Textbox></CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/><TablixMember/><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy>
+              <TablixMembers>
+                <TablixMember><KeepWithGroup>After</KeepWithGroup><RepeatOnNewPage>true</RepeatOnNewPage></TablixMember>
+                <TablixMember><Group Name="DC_ItemsDetail"/></TablixMember>
+                <TablixMember/>
+              </TablixMembers>
+            </TablixRowHierarchy>
+            <DataSetName>DcItems</DataSetName>
+            <Top>5.9cm</Top><Left>0cm</Left><Width>19cm</Width><ZIndex>3</ZIndex>
+          </Tablix>
+
+          <!-- ═══ SECTION 5: SIGNATURE ═══ -->
+          <Tablix Name="DC_SignatureSection">
+            <TablixBody>
+              <TablixColumns>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+                <TablixColumn><Width>9.5cm</Width></TablixColumn>
+              </TablixColumns>
+              <TablixRows>
+                <TablixRow>
+                  <Height>2.5cm</Height>
+                  <TablixCells>
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_ReceiverSign">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>Receiver's Seal &amp; Signature</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                        </TextRun></TextRuns><Style/></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Bottom</VerticalAlign><PaddingLeft>4pt</PaddingLeft><PaddingBottom>4pt</PaddingBottom>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                    <TablixCell><CellContents>
+                      <Textbox Name="DC_AuthSign">
+                        <Paragraphs><Paragraph><TextRuns><TextRun>
+                          <Value>="For " &amp; First(Fields!FromName.Value,"DcHeader") &amp; Chr(10) &amp; Chr(10) &amp; Chr(10) &amp; "Authorised Signatory"</Value>
+                          <Style><FontFamily>Arial</FontFamily><FontSize>8pt</FontSize></Style>
+                        </TextRun></TextRuns><Style><TextAlign>Right</TextAlign></Style></Paragraph></Paragraphs>
+                        <CanGrow>true</CanGrow>
+                        <Style>
+                          <Border><Style>Solid</Style><Color>#000000</Color><Width>0.5pt</Width></Border>
+                          <VerticalAlign>Top</VerticalAlign><PaddingRight>4pt</PaddingRight><PaddingTop>4pt</PaddingTop>
+                        </Style>
+                      </Textbox>
+                    </CellContents></TablixCell>
+                  </TablixCells>
+                </TablixRow>
+              </TablixRows>
+            </TablixBody>
+            <TablixColumnHierarchy><TablixMembers><TablixMember/><TablixMember/></TablixMembers></TablixColumnHierarchy>
+            <TablixRowHierarchy><TablixMembers><TablixMember/></TablixMembers></TablixRowHierarchy>
+            <DataSetName>DcHeader</DataSetName>
+            <Top>24cm</Top><Left>0cm</Left><Width>19cm</Width><Height>2.5cm</Height><ZIndex>4</ZIndex>
+          </Tablix>
+
+        </ReportItems>
+        <Height>28cm</Height>
+        <Style/>
+      </Body>
+      <Width>19cm</Width>
+      <Page>
+        <TopMargin>1cm</TopMargin>
+        <BottomMargin>1cm</BottomMargin>
+        <LeftMargin>1cm</LeftMargin>
+        <RightMargin>1cm</RightMargin>
+      </Page>
+    </ReportSection>
+  </ReportSections>
+
+  <rd:ReportUnitType>Cm</rd:ReportUnitType>
+  <rd:ReportID>e1f2a3b4-c5d6-7890-efab-901234567890</rd:ReportID>
+</Report>
