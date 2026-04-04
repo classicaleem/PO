@@ -20,11 +20,14 @@ namespace SmartPO.Models
         public string FromEmail       { get; set; } = "";
         public string FromPhone       { get; set; } = "";
         public string FromGst         { get; set; } = "";
-        public string CustomerName    { get; set; } = "";
-        public string BillingAddress  { get; set; } = "";
-        public string ShippingAddress { get; set; } = "";
-        public string CustomerGst     { get; set; } = "";
-        public string CustomerPhone   { get; set; } = "";
+        public string CustomerName     { get; set; } = "";
+        public string BillingAddress   { get; set; } = "";  // AddressLine1 only
+        public string CustomerState    { get; set; } = "";
+        public string CustomerPincode  { get; set; } = "";
+        public string ShippingAddress  { get; set; } = "";
+        public string CustomerGst      { get; set; } = "";
+        public string CustomerPhone    { get; set; } = "";
+        public string CustomerDcDate   { get; set; } = "";
         public decimal SubTotal       { get; set; }
         public decimal CgstPercent    { get; set; }
         public decimal SgstPercent    { get; set; }

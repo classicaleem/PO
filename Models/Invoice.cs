@@ -27,13 +27,14 @@
         public PurchaseOrder? PurchaseOrder { get; set; }
         public List<InvoiceItem> Items { get; set; } = new();
 
-        // New properties for Report
+        // Extra detail fields (saved to DB, shown on form & report)
         public decimal FreightAmount { get; set; }
         public string? ContactName { get; set; }
         public string? ContactNo { get; set; }
         public string? VehicleNo { get; set; }
         public string? SimDcNo { get; set; }
-        public string? YourDcNo { get; set; }
+        public string? YourDcNo { get; set; }         // Customer DC number
+        public DateTime? CustomerDcDate { get; set; } // Customer DC date
         public string? Remarks { get; set; }
 
         // Calculated Tax Amounts (Read-only for convenience)

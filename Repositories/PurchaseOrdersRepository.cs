@@ -339,9 +339,10 @@ namespace SmartPO.Repositories
                                ISNULL(SUM(ii.Quantity), 0) as InvoicedQuantity
                         FROM PurchaseOrderItems poi
                         LEFT JOIN InvoiceItems ii ON poi.PoItemId = ii.PoItemId
-                        LEFT JOIN Invoices i ON ii.InvoiceId = i.InvoiceId AND i.IsDeleted = 0
+                        LEFT JOIN Invoices i ON ii.InvoiceId = i.InvoiceId
+                                              AND i.IsDeleted = 0
                         WHERE poi.PoId = @poId AND poi.IsDeleted = 0
-                        GROUP BY poi.PoItemId, poi.PoId, poi.LineNumber, poi.ItemDescription, 
+                        GROUP BY poi.PoItemId, poi.PoId, poi.LineNumber, poi.ItemDescription,
                                  poi.Quantity, poi.UnitPrice, poi.LineTotal, poi.IsDeleted
                         ORDER BY poi.LineNumber";
             var items = await connection.QueryAsync<PurchaseOrderItem>(sql, new { poId });
@@ -351,19 +352,19 @@ namespace SmartPO.Repositories
         public async Task<bool> UpdateCompletionStatusAsync(int poId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            
-            // Check if all items are fully invoiced
-            var sql = @"SELECT CASE 
+
+            var sql = @"SELECT CASE
                             WHEN NOT EXISTS (
                                 SELECT 1 FROM PurchaseOrderItems poi
                                 WHERE poi.PoId = @poId AND poi.IsDeleted = 0
                                 AND poi.Quantity > ISNULL((
-                                    SELECT SUM(ii.Quantity) 
-                                    FROM InvoiceItems ii 
-                                    JOIN Invoices i ON ii.InvoiceId = i.InvoiceId 
-                                    WHERE ii.PoItemId = poi.PoItemId AND i.IsDeleted = 0
+                                    SELECT SUM(ii.Quantity)
+                                    FROM InvoiceItems ii
+                                    JOIN Invoices i ON ii.InvoiceId = i.InvoiceId
+                                    WHERE ii.PoItemId = poi.PoItemId
+                                      AND i.IsDeleted = 0
                                 ), 0)
-                            ) THEN 1 ELSE 0 
+                            ) THEN 1 ELSE 0
                         END";
             var isComplete = await connection.QuerySingleAsync<bool>(sql, new { poId });
             

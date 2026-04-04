@@ -87,31 +87,36 @@
                     valueFormatter: params => '₹' + params.value.toLocaleString('en-IN', { minimumFractionDigits: 2 }),
                      cellStyle: { fontWeight: 'bold' } 
                 },
-                { 
-                    field: "isPaid", 
-                    headerName: "Status", 
-                    width: 120, 
+                {
+                    field: "isPaid",
+                    headerName: "Status",
+                    width: 120,
                     sortable: true,
                     cellRenderer: params => {
-                        return params.value 
-                            ? `<span class="badge bg-success rounded-0">Paid</span>` 
+                        return params.value
+                            ? `<span class="badge bg-success rounded-0">Paid</span>`
                             : `<span class="badge bg-warning text-dark rounded-0">Unpaid</span>`;
                     }
                 },
                 {
                     headerName: "Actions",
-                    width: 150,
+                    width: 210,
                     cellRenderer: params => {
                         const id = params.data.invoiceId;
                         let buttons = `
-                            <div class="btn-group btn-group-sm">
-                                <a href="/Invoices/Details/${id}" class="btn btn-outline-info btn-sm p-1" title="View"><i class="fas fa-eye"></i></a>
-                                <a href="/Invoices/DownloadPdf/${id}" class="btn btn-outline-success btn-sm p-1" title="PDF"><i class="fas fa-file-pdf"></i></a>
+                            <div class="d-flex align-items-center gap-1">
+                                <a href="/Invoices/Details/${id}" class="btn btn-outline-info btn-sm py-0 px-1" title="View"><i class="fas fa-eye"></i></a>
+                                <select onchange="downloadInvoice(this, ${id})" class="form-select form-select-sm py-0" style="width:105px;font-size:11px;height:26px;">
+                                    <option value="">⬇ PDF...</option>
+                                    <option value="original">Original</option>
+                                    <option value="duplicate">Duplicate</option>
+                                    <option value="triplicate">Triplicate</option>
+                                </select>
                         `;
-                        
-                         // Role Check
+
+                        // Role Check
                         const isAdmin = @(User.IsInRole("Admin").ToString().ToLower());
-                        
+
                         if (isAdmin) {
                             buttons += `
                                 <a href="/Invoices/Edit/${id}" class="btn btn-outline-primary btn-sm p-1" title="Edit"><i class="fas fa-edit"></i></a>
@@ -129,8 +134,8 @@
                 filter: true
             },
             pagination: true,
-            paginationPageSize: 10,
-            paginationPageSizeSelectors: [10, 25, 100],
+            paginationPageSize: 20,
+            paginationPageSizeSelector: [20, 50, 100],
             rowHeight: 40,
             headerHeight: 40,
             animateRows: true,
@@ -161,6 +166,13 @@
 
         function onQuickFilterChanged() {
             gridApi.setGridOption('quickFilterText', document.getElementById('quickFilter').value);
+        }
+
+        function downloadInvoice(select, id) {
+            const type = select.value;
+            if (!type) return;
+            window.open(`/Invoices/DownloadPdf/${id}?copyType=${type}`, '_blank');
+            select.value = ''; // reset to placeholder after opening
         }
     </script>
 }

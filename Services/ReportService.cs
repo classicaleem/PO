@@ -7,7 +7,7 @@ namespace SmartPO.Services
     public interface IReportService
     {
         byte[] GeneratePurchaseOrderPdf(PurchaseOrder po, CompanySettings company);
-        byte[] GenerateInvoicePdf(Invoice invoice, CompanySettings company);
+        byte[] GenerateInvoicePdf(Invoice invoice, CompanySettings company, string copyType = "Original for Recipient");
         byte[] GenerateQuotationPdf(Quotation quotation, CompanySettings company);
         byte[] GenerateDeliveryChallanPdf(DeliveryChallan dc, CompanySettings company);
     }
@@ -24,7 +24,7 @@ namespace SmartPO.Services
         // ─────────────────────────────────────────────────────────────────────
         //  INVOICE
         // ─────────────────────────────────────────────────────────────────────
-        public byte[] GenerateInvoicePdf(Invoice invoice, CompanySettings company)
+        public byte[] GenerateInvoicePdf(Invoice invoice, CompanySettings company, string copyType = "Original for Recipient")
         {
             // Read logo bytes (wwwroot/images/logo.png)
             byte[] logoBytes = Array.Empty<byte>();
@@ -51,12 +51,13 @@ namespace SmartPO.Services
                 FromPhone       = company.Phone,
                 FromGst         = company.GstNumber,
                 CustomerName    = invoice.Customer?.CustomerName ?? invoice.CustomerName ?? "",
-                BillingAddress  = invoice.Customer?.FullAddress ?? "",
-                ShippingAddress = !string.IsNullOrEmpty(invoice.ShippingAddress)
-                                    ? invoice.ShippingAddress
-                                    : invoice.Customer?.FullAddress ?? "",
+                BillingAddress  = invoice.Customer?.AddressLine1 ?? "",   // address only, no state/pincode
+                CustomerState   = invoice.Customer?.State ?? "",
+                CustomerPincode = invoice.Customer?.Pincode ?? "",
+                ShippingAddress = invoice.ShippingAddress ?? "",
                 CustomerGst     = invoice.Customer?.GstNumber ?? "",
                 CustomerPhone   = invoice.Customer?.ContactNumber ?? "",
+                CustomerDcDate  = invoice.CustomerDcDate?.ToString("dd-MMM-yyyy") ?? "",
                 SubTotal        = invoice.TotalAmount,
                 CgstPercent     = invoice.CgstPercent,
                 SgstPercent     = invoice.SgstPercent,
@@ -82,6 +83,7 @@ namespace SmartPO.Services
             }).ToList();
 
             return Render("Invoice.rdl",
+                new Dictionary<string, string> { { "CopyType", copyType } },
                 ("InvoiceHeader", new[] { header }.ToList<object>()),
                 ("InvoiceItems",  items.Cast<object>().ToList()));
         }
@@ -207,16 +209,25 @@ namespace SmartPO.Services
         // ─────────────────────────────────────────────────────────────────────
         //  Helper
         // ─────────────────────────────────────────────────────────────────────
-        private byte[] Render(string rdlFileName, params (string name, List<object> data)[] sources)
+        private byte[] Render(string rdlFileName, Dictionary<string, string>? parameters, params (string name, List<object> data)[] sources)
         {
             string reportPath = Path.Combine(_env.ContentRootPath, "Reports", rdlFileName);
             var report = new LocalReport();
             report.ReportPath = reportPath;
+            if (parameters != null)
+            {
+                foreach (var kv in parameters)
+                    report.SetParameters(new ReportParameter(kv.Key, kv.Value));
+            }
             foreach (var (name, data) in sources)
             {
                 report.DataSources.Add(new ReportDataSource(name, data));
             }
             return report.Render("PDF");
         }
+
+        // Overload for callers with no parameters
+        private byte[] Render(string rdlFileName, params (string name, List<object> data)[] sources)
+            => Render(rdlFileName, null, sources);
     }
 }

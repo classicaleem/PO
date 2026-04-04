@@ -18,14 +18,15 @@ namespace SmartPO.Models.ViewModels
         public string CustomerName { get; set; } = string.Empty;
 
         [StringLength(200)]
-        [Display(Name = "Address Line 1")]
+        [Display(Name = "Alias Name")]
+        public string? CustomerAlias { get; set; }
+
+        [StringLength(1000)]
+        [Display(Name = "Address")]
         public string? AddressLine1 { get; set; }
 
-        [StringLength(200)]
-        [Display(Name = "Address Line 2")]
+        // Kept for DB compatibility — not shown in form
         public string? AddressLine2 { get; set; }
-
-        [StringLength(100)]
         public string? City { get; set; }
 
         [Required(ErrorMessage = "State is required")]

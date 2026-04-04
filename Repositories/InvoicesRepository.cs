@@ -64,9 +64,10 @@ namespace SmartPO.Repositories
         public async Task<Invoice?> GetByIdAsync(int invoiceId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+            var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount,
                                i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
+                               i.ContactName, i.ContactNo, i.YourDcNo, i.CustomerDcDate, i.Remarks,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
                         INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
@@ -78,10 +79,11 @@ namespace SmartPO.Repositories
         public async Task<Invoice?> GetByIdWithItemsAsync(int invoiceId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            
-            var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount, 
+
+            var sql = @"SELECT i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate, i.TotalAmount,
                                i.CgstPercent, i.SgstPercent, i.IgstPercent, i.TaxAmount, i.RoundOff, i.GrandTotal,
                                i.ShippingAddress, i.IsPaid, i.IsDeleted,
+                               i.ContactName, i.ContactNo, i.YourDcNo, i.CustomerDcDate, i.Remarks,
                                p.PoNumber, p.InternalPoCode, c.CustomerName, c.CustomerId
                         FROM Invoices i
                         INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
@@ -137,12 +139,14 @@ namespace SmartPO.Repositories
                 invoice.GrandTotal = roundedTotal;
 
                 // Insert invoice header
-                var invoiceSql = @"INSERT INTO Invoices (PoId, InvoiceNumber, InvoiceDate, TotalAmount, 
+                var invoiceSql = @"INSERT INTO Invoices (PoId, InvoiceNumber, InvoiceDate, TotalAmount,
                                                CgstPercent, SgstPercent, IgstPercent, TaxAmount, RoundOff, GrandTotal,
-                                               ShippingAddress, IsPaid, IsDeleted)
-                                   VALUES (@PoId, @InvoiceNumber, @InvoiceDate, @TotalAmount, 
+                                               ShippingAddress, IsPaid, IsDeleted,
+                                               ContactName, ContactNo, YourDcNo, CustomerDcDate, Remarks)
+                                   VALUES (@PoId, @InvoiceNumber, @InvoiceDate, @TotalAmount,
                                            @CgstPercent, @SgstPercent, @IgstPercent, @TaxAmount, @RoundOff, @GrandTotal,
-                                           @ShippingAddress, @IsPaid, 0);
+                                           @ShippingAddress, @IsPaid, 0,
+                                           @ContactName, @ContactNo, @YourDcNo, @CustomerDcDate, @Remarks);
                                    SELECT CAST(SCOPE_IDENTITY() as int)";
                 var invoiceId = await connection.QuerySingleAsync<int>(invoiceSql, invoice, transaction);
 
@@ -187,11 +191,13 @@ namespace SmartPO.Repositories
             invoice.GrandTotal = roundedTotal;
 
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"UPDATE Invoices 
-                        SET PoId = @PoId, InvoiceNumber = @InvoiceNumber, InvoiceDate = @InvoiceDate, 
-                            TotalAmount = @TotalAmount, CgstPercent = @CgstPercent, SgstPercent = @SgstPercent, 
+            var sql = @"UPDATE Invoices
+                        SET PoId = @PoId, InvoiceNumber = @InvoiceNumber, InvoiceDate = @InvoiceDate,
+                            TotalAmount = @TotalAmount, CgstPercent = @CgstPercent, SgstPercent = @SgstPercent,
                             IgstPercent = @IgstPercent, TaxAmount = @TaxAmount, RoundOff = @RoundOff, GrandTotal = @GrandTotal,
-                            ShippingAddress = @ShippingAddress, IsPaid = @IsPaid
+                            ShippingAddress = @ShippingAddress, IsPaid = @IsPaid,
+                            ContactName = @ContactName, ContactNo = @ContactNo,
+                            YourDcNo = @YourDcNo, CustomerDcDate = @CustomerDcDate, Remarks = @Remarks
                         WHERE InvoiceId = @InvoiceId AND IsDeleted = 0";
             var rowsAffected = await connection.ExecuteAsync(sql, invoice);
             return rowsAffected > 0;
@@ -217,9 +223,10 @@ namespace SmartPO.Repositories
         public async Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT COUNT(*) FROM Invoices 
-                        WHERE InvoiceNumber = @invoiceNumber AND IsDeleted = 0 
-                        AND (@excludeInvoiceId IS NULL OR InvoiceId != @excludeInvoiceId)";
+            var sql = @"SELECT COUNT(*) FROM Invoices
+                        WHERE InvoiceNumber = @invoiceNumber
+                          AND IsDeleted = 0
+                          AND (@excludeInvoiceId IS NULL OR InvoiceId != @excludeInvoiceId)";
             var count = await connection.QuerySingleAsync<int>(sql, new { invoiceNumber, excludeInvoiceId });
             return count > 0;
         }
@@ -230,10 +237,11 @@ namespace SmartPO.Repositories
             var sql = @"SELECT poi.PoItemId, poi.ItemDescription, poi.HsnCode, poi.Quantity as OrderedQuantity, 
                                poi.UnitPrice,
                                ISNULL((
-                                   SELECT SUM(ii.Quantity) 
-                                   FROM InvoiceItems ii 
-                                   JOIN Invoices i ON ii.InvoiceId = i.InvoiceId 
-                                   WHERE ii.PoItemId = poi.PoItemId AND i.IsDeleted = 0
+                                   SELECT SUM(ii.Quantity)
+                                   FROM InvoiceItems ii
+                                   JOIN Invoices i ON ii.InvoiceId = i.InvoiceId
+                                   WHERE ii.PoItemId = poi.PoItemId
+                                     AND i.IsDeleted = 0
                                ), 0) as PreviouslyInvoiced
                         FROM PurchaseOrderItems poi
                         WHERE poi.PoId = @poId AND poi.IsDeleted = 0

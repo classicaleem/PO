@@ -47,6 +47,27 @@ namespace SmartPO.Models.ViewModels
         // For dropdown
         public List<SelectListItem> PurchaseOrders { get; set; } = new();
 
+        // ── Extra details (editable on Create / Edit) ──
+        [Display(Name = "Contact Name")]
+        [StringLength(200)]
+        public string? ContactName { get; set; }
+
+        [Display(Name = "Contact Number")]
+        [StringLength(50)]
+        public string? ContactNo { get; set; }
+
+        [Display(Name = "Customer DC")]
+        [StringLength(100)]
+        public string? CustomerDc { get; set; }
+
+        [Display(Name = "Customer DC Date")]
+        [DataType(DataType.Date)]
+        public DateTime? CustomerDcDate { get; set; }
+
+        [Display(Name = "Remarks")]
+        [StringLength(500)]
+        public string? Remarks { get; set; }
+
         // Display properties from PO
         public string? InternalPoCode { get; set; }
         public string? PoNumber { get; set; }

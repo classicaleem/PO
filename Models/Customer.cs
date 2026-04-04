@@ -5,6 +5,7 @@
         public int CustomerId { get; set; }
         public string CustomerCode { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
+        public string? CustomerAlias { get; set; }
         public string? AddressLine1 { get; set; }
         public string? AddressLine2 { get; set; }
         public string? City { get; set; }
@@ -21,15 +22,13 @@
         public DateTime CreatedDate { get; set; }
         public int? CreatedByUserId { get; set; }
 
-        // Computed property for full address
+        // Computed property for full address (AddressLine1 now holds the complete address)
         public string FullAddress
         {
             get
             {
                 var parts = new List<string>();
                 if (!string.IsNullOrEmpty(AddressLine1)) parts.Add(AddressLine1);
-                if (!string.IsNullOrEmpty(AddressLine2)) parts.Add(AddressLine2);
-                if (!string.IsNullOrEmpty(City)) parts.Add(City);
                 if (!string.IsNullOrEmpty(State)) parts.Add(State);
                 if (!string.IsNullOrEmpty(Pincode)) parts.Add(Pincode);
                 return string.Join(", ", parts);

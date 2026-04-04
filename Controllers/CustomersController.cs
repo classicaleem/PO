@@ -40,6 +40,7 @@ namespace SmartPO.Controllers
         {
             var model = new CustomerViewModel
             {
+                CustomerCode = await _customersRepository.GetNextCustomerCodeAsync(),
                 IsActive = true,
                 States = await GetStateSelectListAsync()
             };
@@ -70,6 +71,7 @@ namespace SmartPO.Controllers
             {
                 CustomerCode = model.CustomerCode,
                 CustomerName = model.CustomerName,
+                CustomerAlias = model.CustomerAlias,
                 AddressLine1 = model.AddressLine1,
                 AddressLine2 = model.AddressLine2,
                 City = model.City,
@@ -105,6 +107,7 @@ namespace SmartPO.Controllers
                 CustomerId = customer.CustomerId,
                 CustomerCode = customer.CustomerCode,
                 CustomerName = customer.CustomerName,
+                CustomerAlias = customer.CustomerAlias,
                 AddressLine1 = customer.AddressLine1,
                 AddressLine2 = customer.AddressLine2,
                 City = customer.City,
@@ -152,6 +155,7 @@ namespace SmartPO.Controllers
                 CustomerId = model.CustomerId,
                 CustomerCode = model.CustomerCode,
                 CustomerName = model.CustomerName,
+                CustomerAlias = model.CustomerAlias,
                 AddressLine1 = model.AddressLine1,
                 AddressLine2 = model.AddressLine2,
                 City = model.City,
@@ -191,6 +195,15 @@ namespace SmartPO.Controllers
             await _customersRepository.SoftDeleteAsync(id);
             TempData["Success"] = "Customer deleted successfully.";
             return RedirectToAction(nameof(Index));
+        }
+
+        // API endpoint: returns next auto-generated customer code (used by refresh button)
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetNextCode()
+        {
+            var code = await _customersRepository.GetNextCustomerCodeAsync();
+            return Json(new { code });
         }
 
         // API endpoint for getting tax defaults based on state

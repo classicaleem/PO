@@ -68,6 +68,39 @@
                             <label asp-for="ShippingAddress" class="form-label fw-semibold">Shipping Address</label>
                             <textarea asp-for="ShippingAddress" class="form-control" rows="3"></textarea>
                         </div>
+
+                        <!-- ── Additional Details ── -->
+                        <div class="col-12 mt-2">
+                            <h6 class="border-bottom pb-1 mb-2 text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Additional Details
+                            </h6>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ContactName" class="form-label fw-semibold">Contact Name</label>
+                            <input asp-for="ContactName" class="form-control" placeholder="Contact person name" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="ContactNo" class="form-label fw-semibold">Contact Number</label>
+                            <input asp-for="ContactNo" class="form-control" placeholder="Contact phone number" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="CustomerDc" class="form-label fw-semibold">Customer DC</label>
+                            <input asp-for="CustomerDc" class="form-control" placeholder="Customer DC number" />
+                        </div>
+
+                        <div class="col-md-4">
+                            <label asp-for="CustomerDcDate" class="form-label fw-semibold">Customer DC Date</label>
+                            <input asp-for="CustomerDcDate" class="form-control" type="date" />
+                        </div>
+
+                        <div class="col-md-8">
+                            <label asp-for="Remarks" class="form-label fw-semibold">Remarks</label>
+                            <textarea asp-for="Remarks" class="form-control" rows="2"
+                                      placeholder="Any remarks for this invoice..."></textarea>
+                        </div>
                     </div>
                 </div>
             </div>

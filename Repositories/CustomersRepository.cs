@@ -14,6 +14,7 @@ namespace SmartPO.Repositories
         Task<bool> UpdateAsync(Customer customer);
         Task<bool> SoftDeleteAsync(int customerId);
         Task<bool> CustomerCodeExistsAsync(string customerCode, int? excludeCustomerId = null);
+        Task<string> GetNextCustomerCodeAsync();
         Task<List<SelectListItem>> GetDropdownListAsync();
         Task<List<IndianState>> GetAllStatesAsync();
     }
@@ -30,8 +31,9 @@ namespace SmartPO.Repositories
         public async Task<IEnumerable<Customer>> GetAllAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT CustomerId, CustomerCode, CustomerName, AddressLine1, AddressLine2, 
-                               City, State, StateCode, Pincode, ContactNumber, EmailId, GstNumber,
+            var sql = @"SELECT CustomerId, CustomerCode, CustomerName, CustomerAlias,
+                               AddressLine1, AddressLine2, City, State, StateCode, Pincode,
+                               ContactNumber, EmailId, GstNumber,
                                DefaultCgstPercent, DefaultSgstPercent, DefaultIgstPercent,
                                IsActive, CreatedDate, CreatedByUserId
                         FROM Customers
@@ -43,8 +45,9 @@ namespace SmartPO.Repositories
         public async Task<IEnumerable<Customer>> GetActiveAsync()
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT CustomerId, CustomerCode, CustomerName, AddressLine1, AddressLine2, 
-                               City, State, StateCode, Pincode, ContactNumber, EmailId, GstNumber,
+            var sql = @"SELECT CustomerId, CustomerCode, CustomerName, CustomerAlias,
+                               AddressLine1, AddressLine2, City, State, StateCode, Pincode,
+                               ContactNumber, EmailId, GstNumber,
                                DefaultCgstPercent, DefaultSgstPercent, DefaultIgstPercent,
                                IsActive, CreatedDate, CreatedByUserId
                         FROM Customers
@@ -56,8 +59,9 @@ namespace SmartPO.Repositories
         public async Task<Customer?> GetByIdAsync(int customerId)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT CustomerId, CustomerCode, CustomerName, AddressLine1, AddressLine2, 
-                               City, State, StateCode, Pincode, ContactNumber, EmailId, GstNumber,
+            var sql = @"SELECT CustomerId, CustomerCode, CustomerName, CustomerAlias,
+                               AddressLine1, AddressLine2, City, State, StateCode, Pincode,
+                               ContactNumber, EmailId, GstNumber,
                                DefaultCgstPercent, DefaultSgstPercent, DefaultIgstPercent,
                                IsActive, CreatedDate, CreatedByUserId
                         FROM Customers
@@ -68,12 +72,14 @@ namespace SmartPO.Repositories
         public async Task<int> CreateAsync(Customer customer)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"INSERT INTO Customers (CustomerCode, CustomerName, AddressLine1, AddressLine2, 
-                               City, State, StateCode, Pincode, ContactNumber, EmailId, GstNumber,
+            var sql = @"INSERT INTO Customers (CustomerCode, CustomerName, CustomerAlias,
+                               AddressLine1, AddressLine2, City, State, StateCode, Pincode,
+                               ContactNumber, EmailId, GstNumber,
                                DefaultCgstPercent, DefaultSgstPercent, DefaultIgstPercent,
                                IsActive, CreatedDate, CreatedByUserId)
-                        VALUES (@CustomerCode, @CustomerName, @AddressLine1, @AddressLine2, 
-                               @City, @State, @StateCode, @Pincode, @ContactNumber, @EmailId, @GstNumber,
+                        VALUES (@CustomerCode, @CustomerName, @CustomerAlias,
+                               @AddressLine1, @AddressLine2, @City, @State, @StateCode, @Pincode,
+                               @ContactNumber, @EmailId, @GstNumber,
                                @DefaultCgstPercent, @DefaultSgstPercent, @DefaultIgstPercent,
                                @IsActive, GETDATE(), @CreatedByUserId);
                         SELECT CAST(SCOPE_IDENTITY() as int)";
@@ -83,8 +89,9 @@ namespace SmartPO.Repositories
         public async Task<bool> UpdateAsync(Customer customer)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"UPDATE Customers 
-                        SET CustomerCode = @CustomerCode, CustomerName = @CustomerName, 
+            var sql = @"UPDATE Customers
+                        SET CustomerCode = @CustomerCode, CustomerName = @CustomerName,
+                            CustomerAlias = @CustomerAlias,
                             AddressLine1 = @AddressLine1, AddressLine2 = @AddressLine2,
                             City = @City, State = @State, StateCode = @StateCode, Pincode = @Pincode,
                             ContactNumber = @ContactNumber, EmailId = @EmailId, GstNumber = @GstNumber,
@@ -113,13 +120,24 @@ namespace SmartPO.Repositories
             return count > 0;
         }
 
+        public async Task<string> GetNextCustomerCodeAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            // Use MAX CustomerId so deletes don't cause duplicate codes
+            var sql = @"SELECT 'CUST' + RIGHT('0000' + CAST(ISNULL(MAX(CustomerId), 0) + 1 AS VARCHAR(10)), 4)
+                        FROM Customers";
+            return await connection.QuerySingleAsync<string>(sql);
+        }
+
         public async Task<List<SelectListItem>> GetDropdownListAsync()
         {
             var customers = await GetActiveAsync();
             return customers.Select(c => new SelectListItem
             {
                 Value = c.CustomerId.ToString(),
-                Text = $"{c.CustomerCode} - {c.CustomerName}"
+                Text = string.IsNullOrWhiteSpace(c.CustomerAlias)
+                    ? $"{c.CustomerCode} - {c.CustomerName}"
+                    : $"{c.CustomerCode} - {c.CustomerName} ({c.CustomerAlias})"
             }).ToList();
         }
 

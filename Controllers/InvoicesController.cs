@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using SmartPO.Models;
 using SmartPO.Models.ViewModels;
 using SmartPO.Repositories;
@@ -136,7 +136,12 @@ namespace SmartPO.Controllers
                 InvoiceDate = model.InvoiceDate,
                 ShippingAddress = model.UseDifferentShippingAddress ? model.ShippingAddress : null,
                 IsPaid = model.IsPaid,
-                TotalAmount = model.Items.Sum(i => i.ThisInvoiceQuantity * i.UnitPrice)
+                TotalAmount = model.Items.Sum(i => i.ThisInvoiceQuantity * i.UnitPrice),
+                ContactName = model.ContactName,
+                ContactNo = model.ContactNo,
+                YourDcNo = model.CustomerDc,
+                CustomerDcDate = model.CustomerDcDate,
+                Remarks = model.Remarks
             };
 
             // Calculate taxes based on PO rates
@@ -190,12 +195,18 @@ namespace SmartPO.Controllers
                 ShippingAddress = invoice.ShippingAddress,
                 InternalPoCode = invoice.InternalPoCode,
                 CustomerName = invoice.CustomerName,
-                // Add tax info for display/binding
+                // Tax info
                 CgstPercent = invoice.CgstPercent,
                 SgstPercent = invoice.SgstPercent,
                 IgstPercent = invoice.IgstPercent,
                 TaxAmount = invoice.TaxAmount,
                 GrandTotal = invoice.GrandTotal,
+                // Extra detail fields
+                ContactName = invoice.ContactName,
+                ContactNo = invoice.ContactNo,
+                CustomerDc = invoice.YourDcNo,
+                CustomerDcDate = invoice.CustomerDcDate,
+                Remarks = invoice.Remarks,
                 PurchaseOrders = await _purchaseOrdersRepository.GetDropdownListAsync(),
                 // Map Items
                 Items = invoice.Items?.Select(i => new InvoiceItemViewModel
@@ -206,7 +217,7 @@ namespace SmartPO.Controllers
                     ThisInvoiceQuantity = i.Quantity,
                     UnitPrice = i.UnitPrice,
                     LineAmount = i.LineAmount,
-                    HsnCode = i.HsnCode // Mapped from repository join
+                    HsnCode = i.HsnCode
                 }).ToList() ?? new List<InvoiceItemViewModel>()
             };
             
@@ -243,7 +254,12 @@ namespace SmartPO.Controllers
                 InvoiceDate = model.InvoiceDate,
                 TotalAmount = model.TotalAmount,
                 ShippingAddress = model.UseDifferentShippingAddress ? model.ShippingAddress : null,
-                IsPaid = model.IsPaid
+                IsPaid = model.IsPaid,
+                ContactName = model.ContactName,
+                ContactNo = model.ContactNo,
+                YourDcNo = model.CustomerDc,
+                CustomerDcDate = model.CustomerDcDate,
+                Remarks = model.Remarks
             };
 
             // Recalculate taxes based on PO rates (to be safe or allow override if we supported it)
@@ -265,10 +281,7 @@ namespace SmartPO.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var invoice = await _invoicesRepository.GetByIdAsync(id);
-            if (invoice == null)
-            {
-                return NotFound();
-            }
+            if (invoice == null) return NotFound();
             return View(invoice);
         }
 
@@ -280,28 +293,32 @@ namespace SmartPO.Controllers
             if (invoice != null)
             {
                 await _invoicesRepository.SoftDeleteAsync(id);
-                // Re-check PO completion status
                 await _purchaseOrdersRepository.UpdateCompletionStatusAsync(invoice.PoId);
             }
             TempData["Success"] = "Invoice deleted successfully.";
             return RedirectToAction(nameof(Index));
         }
 
-
-
-        // API endpoint for loading PO items
-        public async Task<IActionResult> DownloadPdf(int id)
+        public async Task<IActionResult> DownloadPdf(int id, string copyType = "original")
         {
             var invoice = await _invoicesRepository.GetByIdAsync(id);
             if (invoice == null) return NotFound();
 
+            // Load PO
             if (invoice.PurchaseOrder == null && invoice.PoId != 0)
             {
-                 var po = await _purchaseOrdersRepository.GetByIdAsync(invoice.PoId);
-                 if (po != null) {
+                var po = await _purchaseOrdersRepository.GetByIdAsync(invoice.PoId);
+                if (po != null)
+                {
                     invoice.PurchaseOrder = po;
                     invoice.PoNumber = po.PoNumber;
-                 }
+                }
+            }
+
+            // Load full Customer (needed for address, state, pincode on report)
+            if (invoice.CustomerId.HasValue)
+            {
+                invoice.Customer = await _customersRepository.GetByIdAsync(invoice.CustomerId.Value);
             }
 
             // Ensure items are loaded
@@ -310,8 +327,22 @@ namespace SmartPO.Controllers
                 invoice.Items = await _invoicesRepository.GetInvoiceItemsAsync(id);
             }
 
-            var pdfBytes = _reportService.GenerateInvoicePdf(invoice, _companySettings.Value);
-            return File(pdfBytes, "application/pdf", $"Invoice_{invoice.InvoiceNumber}.pdf");
+            // Map copyType slug to report label
+            var label = copyType.ToLowerInvariant() switch
+            {
+                "duplicate"   => "Duplicate for Recipient",
+                "triplicate"  => "Triplicate for Recipient",
+                _             => "Original for Recipient"
+            };
+
+            var pdfBytes = _reportService.GenerateInvoicePdf(invoice, _companySettings.Value, label);
+            var fileLabel = copyType.ToLowerInvariant() switch
+            {
+                "duplicate"   => "Duplicate",
+                "triplicate"  => "Triplicate",
+                _             => "Original"
+            };
+            return File(pdfBytes, "application/pdf", $"Invoice_{invoice.InvoiceNumber}_{fileLabel}.pdf");
         }
 
         [HttpGet]
@@ -342,13 +373,12 @@ namespace SmartPO.Controllers
                 customer = await _customersRepository.GetByIdAsync(po.CustomerId.Value);
             }
 
-            return Json(new { 
+            return Json(new {
                 internalPoCode = po.InternalPoCode,
                 poNumber = po.PoNumber,
                 customerName = customer?.CustomerName ?? po.SupplierName,
                 customerAddress = customer?.FullAddress ?? "",
                 customerGstNumber = customer?.GstNumber ?? "",
-                // Return tax rates from PO
                 cgstPercent = po.CgstPercent,
                 sgstPercent = po.SgstPercent,
                 igstPercent = po.IgstPercent,
