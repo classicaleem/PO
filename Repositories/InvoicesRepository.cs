@@ -16,6 +16,9 @@ namespace SmartPO.Repositories
         Task<bool> UpdateAsync(Invoice invoice);
         Task<bool> SoftDeleteAsync(int invoiceId);
         Task<int> GetUnpaidCountAsync();
+        Task<(int TotalInvoices, int PaidInvoices, int UnpaidInvoices, decimal TotalAmount, decimal UnpaidAmount)> GetDashboardStatsAsync();
+        Task<IEnumerable<Invoice>> GetRecentAsync(int count);
+        Task<(int InvoiceCount, decimal InvoiceAmount)> GetMonthlyStatsAsync(DateTime monthStart, DateTime monthEnd);
         Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null);
         Task<List<InvoiceItemViewModel>> GetPoItemsForInvoiceAsync(int poId);
         Task<List<InvoiceItem>> GetInvoiceItemsAsync(int invoiceId);
@@ -218,6 +221,50 @@ namespace SmartPO.Repositories
                         INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
                         WHERE i.IsDeleted = 0 AND p.IsDeleted = 0 AND i.IsPaid = 0";
             return await connection.QuerySingleAsync<int>(sql);
+        }
+
+        public async Task<(int TotalInvoices, int PaidInvoices, int UnpaidInvoices, decimal TotalAmount, decimal UnpaidAmount)> GetDashboardStatsAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT
+                            COUNT(*) as TotalInvoices,
+                            ISNULL(SUM(CASE WHEN i.IsPaid = 1 THEN 1 ELSE 0 END), 0) as PaidInvoices,
+                            ISNULL(SUM(CASE WHEN i.IsPaid = 0 THEN 1 ELSE 0 END), 0) as UnpaidInvoices,
+                            ISNULL(SUM(i.GrandTotal), 0) as TotalAmount,
+                            ISNULL(SUM(CASE WHEN i.IsPaid = 0 THEN i.GrandTotal ELSE 0 END), 0) as UnpaidAmount
+                        FROM Invoices i
+                        INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                        WHERE i.IsDeleted = 0 AND p.IsDeleted = 0";
+            var result = await connection.QuerySingleAsync<dynamic>(sql);
+            return ((int)result.TotalInvoices, (int)result.PaidInvoices, (int)result.UnpaidInvoices, (decimal)result.TotalAmount, (decimal)result.UnpaidAmount);
+        }
+
+        public async Task<IEnumerable<Invoice>> GetRecentAsync(int count)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT TOP (@count) i.InvoiceId, i.PoId, i.InvoiceNumber, i.InvoiceDate,
+                               i.TotalAmount, i.GrandTotal, i.IsPaid,
+                               p.PoNumber, p.InternalPoCode, c.CustomerName
+                        FROM Invoices i
+                        INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                        WHERE i.IsDeleted = 0 AND p.IsDeleted = 0
+                        ORDER BY i.InvoiceDate DESC";
+            return await connection.QueryAsync<Invoice>(sql, new { count });
+        }
+
+        public async Task<(int InvoiceCount, decimal InvoiceAmount)> GetMonthlyStatsAsync(DateTime monthStart, DateTime monthEnd)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT
+                            COUNT(*) as InvoiceCount,
+                            ISNULL(SUM(i.GrandTotal), 0) as InvoiceAmount
+                        FROM Invoices i
+                        INNER JOIN PurchaseOrders p ON i.PoId = p.PoId
+                        WHERE i.IsDeleted = 0 AND p.IsDeleted = 0
+                        AND i.InvoiceDate >= @monthStart AND i.InvoiceDate <= @monthEnd";
+            var result = await connection.QuerySingleAsync<dynamic>(sql, new { monthStart, monthEnd });
+            return ((int)result.InvoiceCount, (decimal)result.InvoiceAmount);
         }
 
         public async Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null)

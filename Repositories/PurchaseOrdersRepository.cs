@@ -17,6 +17,8 @@ namespace SmartPO.Repositories
         Task<bool> SoftDeleteAsync(int poId);
         Task<(int TotalPOs, int CompletedPOs, decimal TotalAmount)> GetDashboardStatsAsync();
         Task<IEnumerable<PurchaseOrder>> GetRecentAsync(int count);
+        Task<(int PoCount, decimal PoAmount)> GetMonthlyStatsAsync(DateTime monthStart, DateTime monthEnd);
+        Task<List<Models.ViewModels.TopCustomerDto>> GetTopCustomersAsync(int count);
         Task<bool> PoNumberExistsAsync(string poNumber, int? excludePoId = null);
         Task<string> GenerateNextInternalPoCodeAsync();
         Task<List<SelectListItem>> GetDropdownListAsync();
@@ -295,11 +297,41 @@ namespace SmartPO.Repositories
             return await connection.QueryAsync<PurchaseOrder>(sql, new { count });
         }
 
+        public async Task<(int PoCount, decimal PoAmount)> GetMonthlyStatsAsync(DateTime monthStart, DateTime monthEnd)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT
+                            COUNT(*) as PoCount,
+                            ISNULL(SUM(GrandTotal), 0) as PoAmount
+                        FROM PurchaseOrders
+                        WHERE IsDeleted = 0
+                        AND CreatedDate >= @monthStart AND CreatedDate <= @monthEnd";
+            var result = await connection.QuerySingleAsync<dynamic>(sql, new { monthStart, monthEnd });
+            return ((int)result.PoCount, (decimal)result.PoAmount);
+        }
+
+        public async Task<List<Models.ViewModels.TopCustomerDto>> GetTopCustomersAsync(int count)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT TOP (@count)
+                            c.CustomerId, c.CustomerName,
+                            COUNT(DISTINCT p.PoId) as PoCount,
+                            ISNULL((SELECT COUNT(*) FROM Invoices i WHERE i.PoId IN (SELECT PoId FROM PurchaseOrders WHERE CustomerId = c.CustomerId AND IsDeleted = 0) AND i.IsDeleted = 0), 0) as InvoiceCount,
+                            ISNULL(SUM(p.GrandTotal), 0) as TotalAmount
+                        FROM Customers c
+                        INNER JOIN PurchaseOrders p ON c.CustomerId = p.CustomerId
+                        WHERE p.IsDeleted = 0 AND c.IsActive = 1
+                        GROUP BY c.CustomerId, c.CustomerName
+                        ORDER BY TotalAmount DESC";
+            var result = await connection.QueryAsync<Models.ViewModels.TopCustomerDto>(sql, new { count });
+            return result.ToList();
+        }
+
         public async Task<bool> PoNumberExistsAsync(string poNumber, int? excludePoId = null)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT COUNT(*) FROM PurchaseOrders 
-                        WHERE PoNumber = @poNumber AND IsDeleted = 0 
+            var sql = @"SELECT COUNT(*) FROM PurchaseOrders
+                        WHERE PoNumber = @poNumber AND IsDeleted = 0
                         AND (@excludePoId IS NULL OR PoId != @excludePoId)";
             var count = await connection.QuerySingleAsync<int>(sql, new { poNumber, excludePoId });
             return count > 0;

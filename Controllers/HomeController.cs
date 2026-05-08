@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using SmartPO.Models;
 using SmartPO.Models.ViewModels;
 using SmartPO.Repositories;
@@ -21,17 +21,39 @@ namespace SmartPO.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var stats = await _purchaseOrdersRepository.GetDashboardStatsAsync();
-            var unpaidInvoices = await _invoicesRepository.GetUnpaidCountAsync();
+            var now = DateTime.Now;
+            var monthStart = new DateTime(now.Year, now.Month, 1);
+            var monthEnd = monthStart.AddMonths(1).AddTicks(-1);
+
+            var poStats = await _purchaseOrdersRepository.GetDashboardStatsAsync();
+            var invoiceStats = await _invoicesRepository.GetDashboardStatsAsync();
             var recentPOs = await _purchaseOrdersRepository.GetRecentAsync(5);
+            var recentInvoices = await _invoicesRepository.GetRecentAsync(5);
+            var monthlyPoStats = await _purchaseOrdersRepository.GetMonthlyStatsAsync(monthStart, monthEnd);
+            var monthlyInvStats = await _invoicesRepository.GetMonthlyStatsAsync(monthStart, monthEnd);
+            var topCustomers = await _purchaseOrdersRepository.GetTopCustomersAsync(5);
 
             var model = new DashboardViewModel
             {
-                TotalPOs = stats.TotalPOs,
-                CompletedPOs = stats.CompletedPOs,
-                TotalPoAmount = stats.TotalAmount,
-                UnpaidInvoices = unpaidInvoices,
-                RecentPOs = recentPOs.ToList()
+                TotalPOs = poStats.TotalPOs,
+                CompletedPOs = poStats.CompletedPOs,
+                PendingPOs = poStats.TotalPOs - poStats.CompletedPOs,
+                TotalPoAmount = poStats.TotalAmount,
+
+                TotalInvoices = invoiceStats.TotalInvoices,
+                PaidInvoices = invoiceStats.PaidInvoices,
+                UnpaidInvoices = invoiceStats.UnpaidInvoices,
+                TotalInvoiceAmount = invoiceStats.TotalAmount,
+                UnpaidInvoiceAmount = invoiceStats.UnpaidAmount,
+
+                ThisMonthPOs = monthlyPoStats.PoCount,
+                ThisMonthInvoices = monthlyInvStats.InvoiceCount,
+                ThisMonthPoAmount = monthlyPoStats.PoAmount,
+                ThisMonthInvoiceAmount = monthlyInvStats.InvoiceAmount,
+
+                RecentPOs = recentPOs.ToList(),
+                RecentInvoices = recentInvoices.ToList(),
+                TopCustomers = topCustomers
             };
 
             return View(model);
