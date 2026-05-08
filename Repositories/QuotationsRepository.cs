@@ -13,6 +13,7 @@ namespace SmartPO.Repositories
         Task<string> GenerateNextQuotationNoAsync();
         Task<bool> SoftDeleteAsync(int id);
         Task<IEnumerable<Quotation>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
+        Task<int> GetCountAsync();
     }
 
     public class QuotationsRepository : IQuotationsRepository
@@ -125,6 +126,13 @@ namespace SmartPO.Repositories
                 (q, c) => { q.Customer = c; return q; },
                 new { fromDate, toDate },
                 splitOn: "CustomerName");
+        }
+
+        public async Task<int> GetCountAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "SELECT COUNT(*) FROM Quotations WHERE IsDeleted = 0";
+            return await connection.QuerySingleAsync<int>(sql);
         }
     }
 }

@@ -17,6 +17,7 @@ namespace SmartPO.Repositories
         Task<string> GetNextCustomerCodeAsync();
         Task<List<SelectListItem>> GetDropdownListAsync();
         Task<List<IndianState>> GetAllStatesAsync();
+        Task<int> GetActiveCountAsync();
     }
 
     public class CustomersRepository : ICustomersRepository
@@ -147,6 +148,13 @@ namespace SmartPO.Repositories
             var sql = @"SELECT StateId, StateName, StateCode FROM IndianStates ORDER BY StateName";
             var states = await connection.QueryAsync<IndianState>(sql);
             return states.ToList();
+        }
+
+        public async Task<int> GetActiveCountAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "SELECT COUNT(*) FROM Customers WHERE IsActive = 1";
+            return await connection.QuerySingleAsync<int>(sql);
         }
     }
 }

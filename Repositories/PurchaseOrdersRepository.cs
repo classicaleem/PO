@@ -1,5 +1,6 @@
 ﻿using Dapper;
 using SmartPO.Models;
+using SmartPO.Models.ViewModels;
 using SmartPO.Services;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Data;
@@ -24,6 +25,10 @@ namespace SmartPO.Repositories
         Task<bool> UpdateCompletionStatusAsync(int poId);
         Task<(IEnumerable<PurchaseOrder> Items, int TotalCount, decimal TotalAmount, int TotalQuantity)> GetPagedAsync(int page, int pageSize, string searchTerm, DateTime? fromDate, DateTime? toDate);
         Task<IEnumerable<PurchaseOrder>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
+        Task<int> GetPendingCountAsync();
+        Task<List<MonthlyTrendItem>> GetMonthlyPoTrendAsync(int months = 6);
+        Task<IEnumerable<PurchaseOrder>> GetPendingQuantityPOsAsync(int count = 5);
+        Task<List<TopCustomerItem>> GetTopCustomersAsync(int count = 5);
     }
 
     public class PurchaseOrdersRepository : IPurchaseOrdersRepository
@@ -472,6 +477,52 @@ namespace SmartPO.Repositories
                         ORDER BY p.CreatedDate DESC";
             
             return await connection.QueryAsync<PurchaseOrder>(sql, new { fromDate, toDate });
+        }
+
+        public async Task<int> GetPendingCountAsync()
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = "SELECT COUNT(*) FROM PurchaseOrders WHERE IsCompleted = 0 AND IsDeleted = 0";
+            return await connection.QuerySingleAsync<int>(sql);
+        }
+
+        public async Task<List<MonthlyTrendItem>> GetMonthlyPoTrendAsync(int months = 6)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT YEAR(PoDate) as [Year], MONTH(PoDate) as [Month],
+                               COUNT(*) as PoCount, ISNULL(SUM(GrandTotal), 0) as PoAmount
+                        FROM PurchaseOrders
+                        WHERE IsDeleted = 0 AND PoDate >= DATEADD(MONTH, -@months, GETDATE())
+                        GROUP BY YEAR(PoDate), MONTH(PoDate)
+                        ORDER BY [Year], [Month]";
+            var results = await connection.QueryAsync<MonthlyTrendItem>(sql, new { months });
+            return results.ToList();
+        }
+
+        public async Task<IEnumerable<PurchaseOrder>> GetPendingQuantityPOsAsync(int count = 5)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT TOP (@count) p.PoId, p.PoNumber, p.InternalPoCode, p.CustomerId,
+                               p.PoAmount, p.GrandTotal, p.PoDate, p.CreatedDate, p.IsCompleted,
+                               c.CustomerName
+                        FROM PurchaseOrders p
+                        LEFT JOIN Customers c ON p.CustomerId = c.CustomerId
+                        WHERE p.IsDeleted = 0 AND p.IsCompleted = 0
+                        ORDER BY p.PoDate DESC";
+            return await connection.QueryAsync<PurchaseOrder>(sql, new { count });
+        }
+
+        public async Task<List<TopCustomerItem>> GetTopCustomersAsync(int count = 5)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+            var sql = @"SELECT TOP (@count) c.CustomerName, SUM(p.GrandTotal) as TotalAmount, COUNT(*) as OrderCount
+                        FROM PurchaseOrders p
+                        INNER JOIN Customers c ON p.CustomerId = c.CustomerId
+                        WHERE p.IsDeleted = 0
+                        GROUP BY c.CustomerName
+                        ORDER BY TotalAmount DESC";
+            var results = await connection.QueryAsync<TopCustomerItem>(sql, new { count });
+            return results.ToList();
         }
     }
 }

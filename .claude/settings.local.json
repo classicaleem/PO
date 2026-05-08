@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(del \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\InvoiceDocument.cs\" \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\QuotationDocument.cs\" \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\DeliveryChallanDocument.cs\")"
+      "Bash(del \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\InvoiceDocument.cs\" \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\QuotationDocument.cs\" \"C:\\\\Users\\\\Mohammed Aleem\\\\.gemini\\\\antigravity\\\\scratch\\\\SmartPO\\\\Services\\\\DeliveryChallanDocument.cs\")",
+      "PowerShell(Invoke-WebRequest -Uri \"https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js\" -OutFile \"wwwroot\\\\js\\\\vendor\\\\chart.min.js\")",
+      "PowerShell(\\(Get-Item \"wwwroot\\\\js\\\\vendor\\\\chart.min.js\"\\).Length)"
     ]
   }
 }
