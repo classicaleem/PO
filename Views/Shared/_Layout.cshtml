@@ -1,11 +1,11 @@
-﻿@using System.Security.Claims
+@using System.Security.Claims
 @{
     var username = User.FindFirstValue(ClaimTypes.Name) ?? "Guest";
     var role = User.FindFirstValue(ClaimTypes.Role) ?? "";
     var isAdmin = role == "Admin";
 }
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">

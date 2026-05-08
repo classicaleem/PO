@@ -1,4 +1,4 @@
-﻿@model DashboardViewModel
+@model DashboardViewModel
 @{
     ViewData["Title"] = "Dashboard";
 }
@@ -11,7 +11,7 @@
             <p class="mb-0 opacity-75">Welcome back! Here's an overview of your SIM PO Management System.</p>
         </div>
         <div class="text-end d-none d-md-block">
-            <small class="opacity-75">@DateTime.Now.ToString("dddd, MMMM d, yyyy")</small>
+            <small class="opacity-75">@DateTime.Now.ToString("dd-MM-yyyy")</small>
         </div>
     </div>
 </div>
@@ -79,7 +79,7 @@
             </span>
             <div class="info-box-content">
                 <span class="info-box-text text-muted">Total PO Value</span>
-                <span class="info-box-number fs-3 fw-bold">₹@Model.TotalPoAmount.ToString("N2")</span>
+                <span class="info-box-number fs-3 fw-bold">?@Model.TotalPoAmount.ToString("N2")</span>
                 <div class="progress mt-2" style="height: 4px;">
                     <div class="progress-bar" style="width: 100%; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
                 </div>
@@ -125,8 +125,8 @@
                                             </a>
                                         </td>
                                         <td>@po.SupplierName</td>
-                                        <td class="fw-semibold">₹@po.PoAmount.ToString("N2")</td>
-                                        <td>@po.CreatedDate.ToString("MMM d, yyyy")</td>
+                                        <td class="fw-semibold">?@po.PoAmount.ToString("N2")</td>
+                                        <td>@po.CreatedDate.ToString("dd-MM-yyyy")</td>
                                         <td>
                                             @if (po.IsCompleted)
                                             {

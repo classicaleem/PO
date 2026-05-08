@@ -1,4 +1,4 @@
-﻿namespace SmartPO.Models
+namespace SmartPO.Models
 {
     public class CompanySettings
     {
@@ -9,5 +9,6 @@
         public string Phone { get; set; } = string.Empty;
         public string GstNumber { get; set; } = string.Empty;
         public string LogoPath { get; set; } = "wwwroot/images/logo.png";
+        public string InvoicePrefix { get; set; } = "SIM";
     }
 }

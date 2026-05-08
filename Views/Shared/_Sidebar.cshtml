@@ -79,6 +79,14 @@
                             <p>Sales Report</p>
                         </a>
                     </li>
+
+                    <!-- Data Maintenance (Admin Only) -->
+                    <li class="nav-item">
+                        <a href="@Url.Action("DataMaintenance", "Admin")" class="nav-link @(currentController == "Admin" && currentAction == "DataMaintenance" ? "active" : "")">
+                            <i class="nav-icon fas fa-database"></i>
+                            <p>Data Maintenance</p>
+                        </a>
+                    </li>
                 }
 
                 <li class="nav-header mt-3">ACCOUNT</li>

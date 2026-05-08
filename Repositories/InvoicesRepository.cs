@@ -1,4 +1,4 @@
-﻿using Dapper;
+using Dapper;
 using SmartPO.Models;
 using SmartPO.Models.ViewModels;
 using SmartPO.Services;
@@ -19,7 +19,7 @@ namespace SmartPO.Repositories
         Task<bool> InvoiceNumberExistsAsync(string invoiceNumber, int? excludeInvoiceId = null);
         Task<List<InvoiceItemViewModel>> GetPoItemsForInvoiceAsync(int poId);
         Task<List<InvoiceItem>> GetInvoiceItemsAsync(int invoiceId);
-        Task<string> GenerateNextInvoiceNumberAsync();
+        Task<string> GenerateNextInvoiceNumberAsync(DateTime invoiceDate, string prefix);
         Task<(IEnumerable<Invoice> Items, int TotalCount, decimal TotalAmount, int TotalQuantity)> GetPagedAsync(int page, int pageSize, string searchTerm, DateTime? fromDate, DateTime? toDate);
         Task<IEnumerable<Invoice>> GetByDateRangeAsync(DateTime fromDate, DateTime toDate);
     }
@@ -262,14 +262,23 @@ namespace SmartPO.Repositories
                 LineAmount = 0
             }).ToList();
         }
-        public async Task<string> GenerateNextInvoiceNumberAsync()
+        public async Task<string> GenerateNextInvoiceNumberAsync(DateTime invoiceDate, string prefix)
         {
             using var connection = _connectionFactory.CreateConnection();
-            var sql = @"SELECT ISNULL(MAX(CAST(RIGHT(InvoiceNumber, 4) AS INT)), 0) + 1 
-                        FROM Invoices 
-                        WHERE InvoiceNumber LIKE 'SIMINV%'";
-            var nextNum = await connection.QuerySingleAsync<int>(sql);
-            return $"SIMINV{nextNum:D4}";
+
+            // Total count of all non-deleted invoices (next number = count + 1)
+            var countSql = "SELECT COUNT(*) FROM Invoices WHERE IsDeleted = 0";
+            var count = await connection.QuerySingleAsync<int>(countSql);
+            int nextNum = count + 1;
+
+            // Indian financial year: April 1 → March 31
+            // If month >= 4 (April+), FY starts this year; else FY started last year
+            int fyStart = invoiceDate.Month >= 4 ? invoiceDate.Year : invoiceDate.Year - 1;
+            int fyEnd   = fyStart + 1;
+            // e.g. FY 2025-26 → "2526"
+            string fyCode = $"{fyStart % 100:D2}{fyEnd % 100:D2}";
+
+            return $"{prefix}/INV/{nextNum}/{fyCode}";
         }
 
         public async Task<List<InvoiceItem>> GetInvoiceItemsAsync(int invoiceId)

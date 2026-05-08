@@ -76,8 +76,8 @@ namespace SmartPO.Controllers
         {
             var model = new InvoiceViewModel
             {
-                InvoiceNumber = await _invoicesRepository.GenerateNextInvoiceNumberAsync(),
-                InvoiceDate = DateTime.Today,
+                InvoiceDate   = DateTime.Today,
+                InvoiceNumber = await _invoicesRepository.GenerateNextInvoiceNumberAsync(DateTime.Today, _companySettings.Value.InvoicePrefix),
                 PurchaseOrders = await _purchaseOrdersRepository.GetDropdownListAsync()
             };
 
@@ -121,6 +121,11 @@ namespace SmartPO.Controllers
                 }
                 return View(model);
             }
+
+            // Always regenerate the invoice number using the chosen InvoiceDate
+            // so the financial-year segment is correct regardless of when the form was loaded.
+            model.InvoiceNumber = await _invoicesRepository.GenerateNextInvoiceNumberAsync(
+                model.InvoiceDate, _companySettings.Value.InvoicePrefix);
 
             if (await _invoicesRepository.InvoiceNumberExistsAsync(model.InvoiceNumber))
             {

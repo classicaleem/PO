@@ -36,9 +36,9 @@ namespace SmartPO.Services
             {
                 LogoBytes       = logoBytes,
                 InvoiceNumber   = invoice.InvoiceNumber,
-                InvoiceDate     = invoice.InvoiceDate.ToString("dd-MMM-yyyy"),
+                InvoiceDate     = invoice.InvoiceDate.ToString("dd-MM-yyyy"),
                 PoNumber        = invoice.PoNumber ?? "",
-                PoDate          = invoice.PurchaseOrder?.PoDate?.ToString("dd-MMM-yyyy") ?? "",
+                PoDate          = invoice.PurchaseOrder?.PoDate?.ToString("dd-MM-yyyy") ?? "",
                 ContactName     = invoice.ContactName ?? "",
                 ContactNo       = invoice.ContactNo ?? "",
                 VehicleNo       = invoice.VehicleNo ?? "",
@@ -57,7 +57,7 @@ namespace SmartPO.Services
                 ShippingAddress = invoice.ShippingAddress ?? "",
                 CustomerGst     = invoice.Customer?.GstNumber ?? "",
                 CustomerPhone   = invoice.Customer?.ContactNumber ?? "",
-                CustomerDcDate  = invoice.CustomerDcDate?.ToString("dd-MMM-yyyy") ?? "",
+                CustomerDcDate  = invoice.CustomerDcDate?.ToString("dd-MM-yyyy") ?? "",
                 SubTotal        = invoice.TotalAmount,
                 CgstPercent     = invoice.CgstPercent,
                 SgstPercent     = invoice.SgstPercent,
@@ -96,7 +96,7 @@ namespace SmartPO.Services
             var header = new PoHeaderDto
             {
                 PoNumber        = po.PoNumber,
-                PoDate          = po.PoDate?.ToString("dd-MMM-yyyy") ?? "",
+                PoDate          = po.PoDate?.ToString("dd-MM-yyyy") ?? "",
                 FromName        = company.Name,
                 FromAddress     = $"{company.AddressLine1}, {company.AddressLine2}",
                 FromEmail       = company.Email,
@@ -139,8 +139,8 @@ namespace SmartPO.Services
             var header = new QuotationHeaderDto
             {
                 QuotationNo     = quotation.QuotationNo,
-                QuotationDate   = quotation.Date.ToString("dd-MMM-yyyy"),
-                ValidUntil      = quotation.ValidUntil?.ToString("dd-MMM-yyyy") ?? "",
+                QuotationDate   = quotation.Date.ToString("dd-MM-yyyy"),
+                ValidUntil      = quotation.ValidUntil?.ToString("dd-MM-yyyy") ?? "",
                 FromName        = company.Name,
                 FromAddress     = $"{company.AddressLine1}, {company.AddressLine2}",
                 FromEmail       = company.Email,
@@ -177,7 +177,7 @@ namespace SmartPO.Services
             var header = new DcHeaderDto
             {
                 DcNumber        = dc.DcNumber,
-                DcDate          = dc.DcDate.ToString("dd-MMM-yyyy"),
+                DcDate          = dc.DcDate.ToString("dd-MM-yyyy"),
                 VehicleNo       = dc.VehicleNo,
                 FromName        = company.Name,
                 FromAddress     = $"{company.AddressLine1}, {company.AddressLine2}",

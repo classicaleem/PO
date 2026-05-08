@@ -46,15 +46,15 @@
                     </div>
                     <div class="col-md-4">
                         <label class="form-label text-muted small">PO Date</label>
-                        <p>@(Model.PoDate?.ToString("MMM d, yyyy") ?? "N/A")</p>
+                        <p>@(Model.PoDate?.ToString("dd-MM-yyyy") ?? "N/A")</p>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label text-muted small">Start Date</label>
-                        <p>@(Model.StartDate?.ToString("MMM d, yyyy") ?? "N/A")</p>
+                        <p>@(Model.StartDate?.ToString("dd-MM-yyyy") ?? "N/A")</p>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label text-muted small">End Date</label>
-                        <p>@(Model.EndDate?.ToString("MMM d, yyyy") ?? "N/A")</p>
+                        <p>@(Model.EndDate?.ToString("dd-MM-yyyy") ?? "N/A")</p>
                     </div>
                 </div>
             </div>
@@ -150,7 +150,7 @@
                             {
                                 <tr>
                                     <td><a asp-controller="Invoices" asp-action="Details" asp-route-id="@inv.InvoiceId">@inv.InvoiceNumber</a></td>
-                                    <td>@inv.InvoiceDate.ToString("MMM d, yyyy")</td>
+                                    <td>@inv.InvoiceDate.ToString("dd-MM-yyyy")</td>
                                     <td class="text-end">₹@inv.TotalAmount.ToString("N2")</td>
                                     <td>
                                         @if (inv.IsPaid)
@@ -238,7 +238,7 @@
             </div>
             <div class="card-body">
                 <p class="mb-1">By: <span class="badge bg-secondary">@Model.CreatedByUsername</span></p>
-                <p class="mb-0">On: @Model.CreatedDate.ToString("MMM d, yyyy h:mm tt")</p>
+                <p class="mb-0">On: @Model.CreatedDate.ToString("dd-MM-yyyy")</p>
             </div>
         </div>
     </div>
