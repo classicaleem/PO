@@ -3,12 +3,116 @@
     ViewData["Title"] = "Create Purchase Order";
 }
 
+<style>
+    .po-sticky-summary {
+        position: sticky;
+        top: 70px;
+    }
+    .po-form .form-control, .po-form .form-select {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+    .po-items-table .form-control {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.875rem;
+        border-radius: 6px;
+    }
+    .po-items-table th {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 0.6rem 0.5rem;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    .po-items-table td {
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+    .po-items-table tbody tr:hover {
+        background-color: rgba(102, 126, 234, 0.04);
+    }
+    .po-items-table .item-total-cell {
+        background-color: #f0f4ff;
+        font-weight: 600;
+    }
+    .customer-info-card {
+        background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+        border: 1px solid rgba(102, 126, 234, 0.15);
+        border-radius: 10px;
+        padding: 1rem;
+    }
+    .customer-info-card .info-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c757d;
+        margin-bottom: 0.15rem;
+    }
+    .customer-info-card .info-value {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #333;
+    }
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.4rem 0;
+    }
+    .summary-row.total-row {
+        border-top: 2px solid #667eea;
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+    }
+    .add-item-area {
+        border: 2px dashed rgba(102, 126, 234, 0.3);
+        border-radius: 8px;
+        padding: 0.75rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .add-item-area:hover {
+        border-color: #667eea;
+        background-color: rgba(102, 126, 234, 0.05);
+    }
+    .section-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .section-title i {
+        color: #667eea;
+    }
+    .btn-remove-item {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        padding: 0;
+        transition: all 0.2s;
+    }
+    .btn-remove-item:hover {
+        background-color: #dc3545;
+        color: white;
+        transform: scale(1.1);
+    }
+</style>
+
 <!-- Page Header -->
 <div class="page-header">
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h1><i class="fas fa-plus-circle me-3"></i>Create Purchase Order</h1>
-            <p class="mb-0 opacity-75">Add a new purchase order with items</p>
+            <p class="mb-0 opacity-75">Fill in the details below to create a new purchase order</p>
         </div>
         <a asp-action="Index" class="btn btn-light">
             <i class="fas fa-arrow-left me-2"></i>Back to List
@@ -16,185 +120,223 @@
     </div>
 </div>
 
-<form asp-action="Create" method="post" id="poForm">
+<form asp-action="Create" method="post" id="poForm" class="po-form">
     <div asp-validation-summary="All" class="alert alert-danger" style="display:none;"></div>
-    
+
     <div class="row">
-        <!-- PO Header Section -->
+        <!-- Left Column: PO Header + Items -->
         <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-file-alt me-2"></i>PO Header</h5>
+
+            <!-- PO Details Card -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <span class="section-title"><i class="fas fa-file-alt"></i> PO Details</span>
                 </div>
-                <div class="card-body">
+                <div class="card-body py-3">
                     <div class="row g-3">
                         <div class="col-md-4">
-                            <label asp-for="InternalPoCode" class="form-label fw-semibold">Internal PO Code</label>
-                            <input asp-for="InternalPoCode" class="form-control" readonly style="background-color: #e9ecef;" />
-                            <small class="text-muted">Auto-generated</small>
+                            <label asp-for="InternalPoCode" class="form-label small fw-semibold text-muted">Internal PO Code</label>
+                            <input asp-for="InternalPoCode" class="form-control" readonly style="background-color: #f0f4ff; font-weight: 600; color: #667eea;" />
                         </div>
-                        
                         <div class="col-md-8">
-                            <label asp-for="PoNumber" class="form-label fw-semibold">PO Number *</label>
-                            <input asp-for="PoNumber" class="form-control" placeholder="e.g., PO-2024-001" />
-                            <span asp-validation-for="PoNumber" class="text-danger"></span>
+                            <label asp-for="PoNumber" class="form-label small fw-semibold">PO Number <span class="text-danger">*</span></label>
+                            <input asp-for="PoNumber" class="form-control" placeholder="e.g., PO-2024-001" autofocus />
+                            <span asp-validation-for="PoNumber" class="text-danger small"></span>
                         </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Customer Card -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <span class="section-title"><i class="fas fa-user-tie"></i> Customer</span>
+                </div>
+                <div class="card-body py-3">
+                    <div class="row g-3">
                         <div class="col-12">
-                            <label asp-for="CustomerId" class="form-label fw-semibold">Customer *</label>
+                            <label asp-for="CustomerId" class="form-label small fw-semibold">Select Customer <span class="text-danger">*</span></label>
                             <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select select2-customer" id="customerSelect">
-                                <option value="">-- Select Customer --</option>
+                                <option value="">-- Search or select a customer --</option>
                             </select>
-                            <span asp-validation-for="CustomerId" class="text-danger"></span>
+                            <span asp-validation-for="CustomerId" class="text-danger small"></span>
                         </div>
-
                         <div class="col-12" id="customerDetailsDiv" style="display: none;">
-                            <label class="form-label fw-semibold">Customer Details</label>
-                            <textarea id="customerDetails" class="form-control" rows="3" readonly style="background-color: #f8f9fa;"></textarea>
+                            <div class="customer-info-card">
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="info-label">Customer Name</div>
+                                        <div class="info-value" id="custName">-</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="info-label">GST Number</div>
+                                        <div class="info-value" id="custGst">-</div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="info-label">Address</div>
+                                        <div class="info-value" id="custAddress">-</div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- Dates Card -->
+            <div class="card mb-3">
+                <div class="card-header py-2">
+                    <span class="section-title"><i class="fas fa-calendar-alt"></i> Dates</span>
+                </div>
+                <div class="card-body py-3">
+                    <div class="row g-3">
                         <div class="col-md-4">
-                            <label asp-for="PoDate" class="form-label fw-semibold">PO Date *</label>
-                            <input asp-for="PoDate" class="form-control" type="date"  lang="en-GB">
-                            <span asp-validation-for="PoDate" class="text-danger"></span>
+                            <label asp-for="PoDate" class="form-label small fw-semibold">PO Date <span class="text-danger">*</span></label>
+                            <input asp-for="PoDate" class="form-control" type="date" lang="en-GB" />
+                            <span asp-validation-for="PoDate" class="text-danger small"></span>
                         </div>
-
                         <div class="col-md-4">
-                            <label asp-for="StartDate" class="form-label fw-semibold">Start Date</label>
-                            <input asp-for="StartDate" class="form-control" type="date"  lang="en-GB">
+                            <label asp-for="StartDate" class="form-label small fw-semibold text-muted">Start Date</label>
+                            <input asp-for="StartDate" class="form-control" type="date" lang="en-GB" />
                         </div>
-
                         <div class="col-md-4">
-                            <label asp-for="EndDate" class="form-label fw-semibold">End Date</label>
-                            <input asp-for="EndDate" class="form-control" type="date"  lang="en-GB">
+                            <label asp-for="EndDate" class="form-label small fw-semibold text-muted">End Date</label>
+                            <input asp-for="EndDate" class="form-control" type="date" lang="en-GB" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Card -->
+            <div class="card mb-3">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <span class="section-title"><i class="fas fa-boxes-stacked"></i> Line Items</span>
+                    <span class="badge bg-primary" id="itemCountBadge">0 items</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table mb-0 po-items-table" id="itemsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 4%;" class="text-center">#</th>
+                                    <th style="width: 34%;">Item Description <span class="text-warning">*</span></th>
+                                    <th style="width: 12%;">HSN Code</th>
+                                    <th style="width: 14%;" class="text-center">Qty <span class="text-warning">*</span></th>
+                                    <th style="width: 16%;" class="text-end">Unit Price <span class="text-warning">*</span></th>
+                                    <th style="width: 16%;" class="text-end">Line Total</th>
+                                    <th style="width: 4%;" class="text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsBody">
+                                @for (int i = 0; i < (Model.Items.Any() ? Model.Items.Count : 1); i++)
+                                {
+                                    var item = Model.Items.ElementAtOrDefault(i) ?? new PurchaseOrderItemViewModel();
+                                    <tr class="item-row">
+                                        <td class="text-center line-number fw-semibold text-muted">@(i + 1)</td>
+                                        <td>
+                                            <input type="hidden" name="Items[@i].PoItemId" value="@item.PoItemId" />
+                                            <input type="hidden" name="Items[@i].LineNumber" value="@(i + 1)" />
+                                            <input type="text" name="Items[@i].ItemDescription" value="@item.ItemDescription"
+                                                   class="form-control item-description" placeholder="Enter item description" />
+                                        </td>
+                                        <td>
+                                            <input type="text" name="Items[@i].HsnCode" value="@item.HsnCode"
+                                                   class="form-control item-hsn" placeholder="HSN" maxlength="10" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Items[@i].Quantity" value="@(item.Quantity > 0 ? item.Quantity : "")"
+                                                   class="form-control item-quantity text-center" min="1" step="1"
+                                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" />
+                                        </td>
+                                        <td>
+                                            <input type="number" name="Items[@i].UnitPrice" value="@(item.UnitPrice > 0 ? item.UnitPrice : "")"
+                                                   class="form-control item-price text-end" min="0.01" step="0.01" placeholder="0.00" />
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control item-total text-end item-total-cell" value="@item.LineTotal.ToString("N2")" readonly />
+                                        </td>
+                                        <td class="text-center">
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-item remove-item-btn" title="Remove item">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="p-3 pt-2">
+                        <div class="add-item-area" id="addItemBtn">
+                            <i class="fas fa-plus me-2 text-primary"></i>
+                            <span class="text-primary fw-semibold">Add New Item</span>
+                            <span class="text-muted small ms-2">(max 10 items)</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Summary Section -->
+        <!-- Right Column: Sticky Summary + Actions -->
         <div class="col-lg-4">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="fas fa-calculator me-2"></i>PO Summary</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Total Items:</span>
-                        <span id="totalItems" class="fw-bold">0</span>
+            <div class="po-sticky-summary">
+                <!-- Summary Card -->
+                <div class="card mb-3">
+                    <div class="card-header py-2" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <span class="section-title text-white"><i class="fas fa-calculator" style="color: white;"></i> PO Summary</span>
                     </div>
-                    <hr>
-                    <hr>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span>Sub Total:</span>
-                        <span id="poAmount" class="fw-bold">₹0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
-                        <span>CGST (<span id="cgstDisplay">0</span>%):</span>
-                        <span id="cgstAmount">₹0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
-                        <span>SGST (<span id="sgstDisplay">0</span>%):</span>
-                        <span id="sgstAmount">₹0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-3 text-muted small">
-                        <span>IGST (<span id="igstDisplay">0</span>%):</span>
-                        <span id="igstAmount">₹0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2 text-muted small">
-                        <span>Round Off:</span>
-                        <span id="roundOffAmount">₹0.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center border-top pt-2">
-                        <span class="h5 mb-0">Grand Total:</span>
-                        <span id="grandTotal" class="h4 mb-0 text-success">₹0.00</span>
-                    </div>
+                    <div class="card-body">
+                        <div class="summary-row">
+                            <span class="text-muted">Total Items</span>
+                            <span id="totalItems" class="fw-bold badge bg-primary">0</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="summary-row">
+                            <span class="fw-semibold">Sub Total</span>
+                            <span id="poAmount" class="fw-bold">0.00</span>
+                        </div>
+                        <div class="summary-row small">
+                            <span class="text-muted">CGST (<span id="cgstDisplay">0</span>%)</span>
+                            <span id="cgstAmount" class="text-muted">0.00</span>
+                        </div>
+                        <div class="summary-row small">
+                            <span class="text-muted">SGST (<span id="sgstDisplay">0</span>%)</span>
+                            <span id="sgstAmount" class="text-muted">0.00</span>
+                        </div>
+                        <div class="summary-row small">
+                            <span class="text-muted">IGST (<span id="igstDisplay">0</span>%)</span>
+                            <span id="igstAmount" class="text-muted">0.00</span>
+                        </div>
+                        <div class="summary-row small">
+                            <span class="text-muted">Round Off</span>
+                            <span id="roundOffAmount" class="text-muted">0.00</span>
+                        </div>
+                        <div class="summary-row total-row">
+                            <span class="h6 mb-0 fw-bold">Grand Total</span>
+                            <span id="grandTotal" class="h5 mb-0 fw-bold text-success">0.00</span>
+                        </div>
 
-                    <input type="hidden" asp-for="PoAmount" id="poAmountInput" />
-                    <input type="hidden" asp-for="CgstPercent" id="cgstInput" value="0" />
-                    <input type="hidden" asp-for="SgstPercent" id="sgstInput" value="0" />
-                    <input type="hidden" asp-for="IgstPercent" id="igstInput" value="0" />
-                    <input type="hidden" asp-for="TaxAmount" id="taxAmountInput" value="0" />
-                    <input type="hidden" asp-for="RoundOff" id="roundOffInput" value="0" />
-                    <input type="hidden" asp-for="GrandTotal" id="grandTotalInput" value="0" />
+                        <input type="hidden" asp-for="PoAmount" id="poAmountInput" />
+                        <input type="hidden" asp-for="CgstPercent" id="cgstInput" value="0" />
+                        <input type="hidden" asp-for="SgstPercent" id="sgstInput" value="0" />
+                        <input type="hidden" asp-for="IgstPercent" id="igstInput" value="0" />
+                        <input type="hidden" asp-for="TaxAmount" id="taxAmountInput" value="0" />
+                        <input type="hidden" asp-for="RoundOff" id="roundOffInput" value="0" />
+                        <input type="hidden" asp-for="GrandTotal" id="grandTotalInput" value="0" />
+                    </div>
+                </div>
+
+                <!-- Action Card -->
+                <div class="card">
+                    <div class="card-body py-3">
+                        <button type="submit" class="btn btn-success w-100 py-2 mb-2 fw-semibold">
+                            <i class="fas fa-save me-2"></i>Save Purchase Order
+                        </button>
+                        <a asp-action="Index" class="btn btn-outline-secondary w-100">
+                            <i class="fas fa-times me-2"></i>Cancel
+                        </a>
+                    </div>
                 </div>
             </div>
-
-            <div class="card mt-3">
-                <div class="card-body">
-                    <button type="submit" class="btn btn-success w-100 mb-2">
-                        <i class="fas fa-save me-2"></i>Save Purchase Order
-                    </button>
-                    <a asp-action="Index" class="btn btn-outline-secondary w-100">
-                        Cancel
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Items Section -->
-    <div class="card mt-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0"><i class="fas fa-list me-2"></i>PO Items</h5>
-            <button type="button" class="btn btn-sm btn-primary" id="addItemBtn">
-                <i class="fas fa-plus me-1"></i>Add Item
-            </button>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered" id="itemsTable">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width: 5%;">#</th>
-                            <th style="width: 30%;">Item Description *</th>
-                            <th style="width: 15%;">HSN Code</th>
-                            <th style="width: 15%;">Quantity *</th>
-                            <th style="width: 15%;">Unit Price *</th>
-                            <th style="width: 15%;">Line Total</th>
-                            <th style="width: 5%;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="itemsBody">
-                        @for (int i = 0; i < (Model.Items.Any() ? Model.Items.Count : 1); i++)
-                        {
-                            var item = Model.Items.ElementAtOrDefault(i) ?? new PurchaseOrderItemViewModel();
-                            <tr class="item-row">
-                                <td class="text-center line-number">@(i + 1)</td>
-                                <td>
-                                    <input type="hidden" name="Items[@i].PoItemId" value="@item.PoItemId" />
-                                    <input type="hidden" name="Items[@i].LineNumber" value="@(i + 1)" />
-                                    <input type="text" name="Items[@i].ItemDescription" value="@item.ItemDescription" 
-                                           class="form-control item-description" placeholder="Description" />
-                                </td>
-                                <td>
-                                    <input type="text" name="Items[@i].HsnCode" value="@item.HsnCode" 
-                                           class="form-control item-hsn" placeholder="HSN" maxlength="10" />
-                                </td>
-                                <td>
-                                    <input type="number" name="Items[@i].Quantity" value="@(item.Quantity > 0 ? item.Quantity : "")" 
-                                           class="form-control item-quantity" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" />
-                                </td>
-                                <td>
-                                    <input type="number" name="Items[@i].UnitPrice" value="@(item.UnitPrice > 0 ? item.UnitPrice : "")" 
-                                           class="form-control item-price" min="0.01" step="0.01" placeholder="0.00" />
-                                </td>
-                                <td>
-                                    <input type="text" class="form-control item-total" value="@item.LineTotal.ToString("N2")" readonly 
-                                           style="background-color: #e9ecef;" />
-                                </td>
-                                <td class="text-center">
-                                    <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-            <small class="text-muted"><i class="fas fa-info-circle me-1"></i>Maximum 10 items allowed per PO</small>
         </div>
     </div>
 </form>
@@ -202,57 +344,56 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
-        $(document).ready(function() {
-            // Initialize Select2 for customer dropdown
+        $(document).ready(function () {
+            // Initialize Select2
             $('.select2-customer').select2({
                 theme: 'bootstrap-5',
                 placeholder: 'Search for a customer...',
                 allowClear: true
             });
 
-            // Customer selection - fetch details
-            $('#customerSelect').on('change', function() {
+            // Customer selection
+            $('#customerSelect').on('change', function () {
                 var customerId = $(this).val();
                 if (customerId) {
-                    $.get('@Url.Action("GetCustomerDetails", "Customers")', { id: customerId }, function(data) {
-                        $('#customerDetailsDiv').show();
-                        $('#customerDetails').val(data.customerName + '\n' + data.address + '\nGST: ' + (data.gstNumber || 'N/A'));
-                        
-                        // Fetch tax defaults
-                        $.get('@Url.Action("GetTaxDefaults", "Customers")', { state: data.state }, function(taxData) {
+                    $.get('@Url.Action("GetCustomerDetails", "Customers")', { id: customerId }, function (data) {
+                        $('#customerDetailsDiv').slideDown(200);
+                        $('#custName').text(data.customerName || '-');
+                        $('#custAddress').text(data.address || '-');
+                        $('#custGst').text(data.gstNumber || 'N/A');
+
+                        $.get('@Url.Action("GetTaxDefaults", "Customers")', { state: data.state }, function (taxData) {
                             $('#cgstInput').val(taxData.cgst);
                             $('#sgstInput').val(taxData.sgst);
                             $('#igstInput').val(taxData.igst);
-                            
                             $('#cgstDisplay').text(taxData.cgst);
                             $('#sgstDisplay').text(taxData.sgst);
                             $('#igstDisplay').text(taxData.igst);
-                            
                             calculateTotals();
                         });
                     });
                 } else {
-                    $('#customerDetailsDiv').hide();
-                    $('#customerDetails').val('');
-                    // Reset tax
+                    $('#customerDetailsDiv').slideUp(200);
+                    $('#custName').text('-');
+                    $('#custAddress').text('-');
+                    $('#custGst').text('-');
                     $('#cgstInput').val(0); $('#sgstInput').val(0); $('#igstInput').val(0);
                     $('#cgstDisplay').text(0); $('#sgstDisplay').text(0); $('#igstDisplay').text(0);
                     calculateTotals();
                 }
             });
 
-            // Calculate line totals and PO amount
             function calculateTotals() {
                 var totalAmount = 0;
                 var itemCount = 0;
 
-                $('#itemsBody tr.item-row').each(function() {
+                $('#itemsBody tr.item-row').each(function () {
                     var qty = parseFloat($(this).find('.item-quantity').val()) || 0;
                     var price = parseFloat($(this).find('.item-price').val()) || 0;
                     var lineTotal = qty * price;
-                    
+
                     $(this).find('.item-total').val(lineTotal.toFixed(2));
-                    
+
                     if ($(this).find('.item-description').val().trim() !== '') {
                         totalAmount += lineTotal;
                         if (qty > 0) itemCount++;
@@ -260,15 +401,14 @@
                 });
 
                 $('#totalItems').text(itemCount);
-                $('#totalItems').text(itemCount);
-                $('#poAmount').text('₹' + totalAmount.toFixed(2));
+                $('#itemCountBadge').text(itemCount + ' item' + (itemCount !== 1 ? 's' : ''));
+                $('#poAmount').text('₹' + totalAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
                 $('#poAmountInput').val(totalAmount.toFixed(2));
 
-                // Calculate Taxes
                 var cgst = parseFloat($('#cgstInput').val()) || 0;
                 var sgst = parseFloat($('#sgstInput').val()) || 0;
                 var igst = parseFloat($('#igstInput').val()) || 0;
-                
+
                 var cgstAmt = totalAmount * (cgst / 100);
                 var sgstAmt = totalAmount * (sgst / 100);
                 var igstAmt = totalAmount * (igst / 100);
@@ -277,23 +417,21 @@
                 var grandTotal = Math.round(totalWithTax);
                 var roundOff = grandTotal - totalWithTax;
 
-                $('#cgstAmount').text('₹' + cgstAmt.toFixed(2));
-                $('#sgstAmount').text('₹' + sgstAmt.toFixed(2));
-                $('#igstAmount').text('₹' + igstAmt.toFixed(2));
+                $('#cgstAmount').text('₹' + cgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+                $('#sgstAmount').text('₹' + sgstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+                $('#igstAmount').text('₹' + igstAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
                 $('#roundOffAmount').text('₹' + roundOff.toFixed(2));
-                $('#grandTotal').text('₹' + grandTotal.toFixed(2));
-                
+                $('#grandTotal').text('₹' + grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 }));
+
                 $('#taxAmountInput').val(totalTax.toFixed(2));
                 $('#roundOffInput').val(roundOff.toFixed(2));
                 $('#grandTotalInput').val(grandTotal.toFixed(2));
 
-                // Update line numbers
-                $('#itemsBody tr.item-row').each(function(index) {
+                // Update indices and line numbers
+                $('#itemsBody tr.item-row').each(function (index) {
                     $(this).find('.line-number').text(index + 1);
                     $(this).find('input[name*="LineNumber"]').val(index + 1);
-                    
-                    // Update field names
-                    $(this).find('input').each(function() {
+                    $(this).find('input').each(function () {
                         var name = $(this).attr('name');
                         if (name) {
                             $(this).attr('name', name.replace(/\[\d+\]/, '[' + index + ']'));
@@ -302,68 +440,83 @@
                 });
             }
 
-            // Bind calculate to quantity/price changes
             $(document).on('input', '.item-quantity, .item-price', calculateTotals);
 
-            // Add new item row
-            $('#addItemBtn').on('click', function() {
+            // Tab from last price field → auto-add new row
+            $(document).on('keydown', '.item-price', function (e) {
+                if (e.key === 'Tab' && !e.shiftKey) {
+                    var $row = $(this).closest('tr');
+                    if ($row.is('#itemsBody tr.item-row:last-child')) {
+                        var rowCount = $('#itemsBody tr.item-row').length;
+                        if (rowCount < 10) {
+                            e.preventDefault();
+                            addNewRow();
+                            $('#itemsBody tr.item-row:last-child .item-description').focus();
+                        }
+                    }
+                }
+            });
+
+            function addNewRow() {
                 var rowCount = $('#itemsBody tr.item-row').length;
                 if (rowCount >= 10) {
                     toastr.warning('Maximum 10 items allowed per PO');
                     return;
                 }
-
                 var newRow = `
-                    <tr class="item-row">
-                        <td class="text-center line-number">${rowCount + 1}</td>
+                    <tr class="item-row" style="animation: fadeIn 0.2s ease-in;">
+                        <td class="text-center line-number fw-semibold text-muted">${rowCount + 1}</td>
                         <td>
                             <input type="hidden" name="Items[${rowCount}].PoItemId" value="0" />
                             <input type="hidden" name="Items[${rowCount}].LineNumber" value="${rowCount + 1}" />
-                            <input type="text" name="Items[${rowCount}].ItemDescription" 
-                                   class="form-control item-description" placeholder="Description" />
+                            <input type="text" name="Items[${rowCount}].ItemDescription"
+                                   class="form-control item-description" placeholder="Enter item description" />
                         </td>
                         <td>
-                            <input type="text" name="Items[${rowCount}].HsnCode" 
+                            <input type="text" name="Items[${rowCount}].HsnCode"
                                    class="form-control item-hsn" placeholder="HSN" maxlength="10" />
                         </td>
                         <td>
-                            <input type="number" name="Items[${rowCount}].Quantity" 
-                                   class="form-control item-quantity" min="1" step="1" onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" />
+                            <input type="number" name="Items[${rowCount}].Quantity"
+                                   class="form-control item-quantity text-center" min="1" step="1"
+                                   onkeypress="return event.charCode >= 48 && event.charCode <= 57" placeholder="0" />
                         </td>
                         <td>
-                            <input type="number" name="Items[${rowCount}].UnitPrice" 
-                                   class="form-control item-price" min="0.01" step="0.01" placeholder="0.00" />
+                            <input type="number" name="Items[${rowCount}].UnitPrice"
+                                   class="form-control item-price text-end" min="0.01" step="0.01" placeholder="0.00" />
                         </td>
                         <td>
-                            <input type="text" class="form-control item-total" value="0.00" readonly 
-                                   style="background-color: #e9ecef;" />
+                            <input type="text" class="form-control item-total text-end item-total-cell" value="0.00" readonly />
                         </td>
                         <td class="text-center">
-                            <button type="button" class="btn btn-sm btn-outline-danger remove-item-btn">
+                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-item remove-item-btn" title="Remove item">
                                 <i class="fas fa-times"></i>
                             </button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
                 $('#itemsBody').append(newRow);
                 calculateTotals();
+            }
+
+            $('#addItemBtn').on('click', function () {
+                addNewRow();
+                $('#itemsBody tr.item-row:last-child .item-description').focus();
             });
 
-            // Remove item row
-            $(document).on('click', '.remove-item-btn', function() {
+            $(document).on('click', '.remove-item-btn', function () {
                 var rowCount = $('#itemsBody tr.item-row').length;
                 if (rowCount <= 1) {
                     toastr.warning('At least one item is required');
                     return;
                 }
-                $(this).closest('tr').remove();
-                calculateTotals();
+                $(this).closest('tr').fadeOut(200, function () {
+                    $(this).remove();
+                    calculateTotals();
+                });
             });
 
-            // Initial calculation
             calculateTotals();
 
-            // Validation display
             if ($('.field-validation-error').length > 0 || $('.validation-summary-errors').length > 0) {
                 $('.alert-danger').show();
             }
